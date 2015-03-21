@@ -3,12 +3,18 @@
 Disclamer, I do not take credit for any of the work presented here, most of my work has be copy and paste from variouse places.
 
 Project staus's
-Utils - builds
-DatabaseManager - builds
-NetworkManager - builds
-Common - builds
+*Utils - builds
+*DatabaseManager - builds
+*NetworkManager - builds
+*Common - builds
 
 all others are a work in progress
+
+##What I know so far / to do!##
+
+*The build server bats don't work - needs to be fixed
+*Deps are MIA - need to zip and uplaods them somewhere
+*Deps need to list what you need to build
 
 # MMOServer #
 

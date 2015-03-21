@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{FC533E81-C227-43D3-B68E-4A23241DD997}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ZoneServer</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build-aux\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build-aux\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)deps\glm;$(SolutionDir)deps\lua\src;$(SolutionDir)deps\noise\src;$(SolutionDir)deps\spatialindex\include;$(SolutionDir)deps\spatialindex\tools\include;$(SolutionDir)src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)deps\boost\stage\lib;$(SolutionDir)deps\lua\lib;$(SolutionDir)deps\mysql\lib\debug;$(SolutionDir)deps\noise\win32\Debug;$(SolutionDir)deps\spatialindex\Debug;$(SolutionDir)deps\tolua++\win32\vc9\withLua51_Debug;$(SolutionDir)deps\zlib\projects\visualc6\Win32_LIB_Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;lua5.1d.lib;libmysql.lib;libnoise.lib;spatialindex.lib;toluapp.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)tools\postbuild.bat" "$(SolutionDir)" "$(ConfigurationName)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0501;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)deps\glm;$(SolutionDir)deps\lua\src;$(SolutionDir)deps\noise\src;$(SolutionDir)deps\spatialindex\include;$(SolutionDir)deps\spatialindex\tools\include;$(SolutionDir)src</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(SolutionDir)deps\boost\stage\lib;$(SolutionDir)deps\lua\lib;$(SolutionDir)deps\mysql\lib\opt;$(SolutionDir)deps\noise\win32\Release;$(SolutionDir)deps\spatialindex\Release;$(SolutionDir)deps\tolua++\win32\vc9\withLua51_Release;$(SolutionDir)deps\zlib\projects\visualc6\Win32_LIB_Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;ws2_32.lib;lua5.1.lib;libmysql.lib;libnoise.lib;spatialIndex.lib;toluapp.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>call "$(SolutionDir)tools\postbuild.bat" "$(SolutionDir)" "$(ConfigurationName)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{432dcbe9-1f49-49ff-9753-be806192a917}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\DatabaseManager\DatabaseManager.vcxproj">
+      <Project>{c4e4bd1a-64fe-46b4-a38b-9fe62e57697d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\MessageLib\MessageLib.vcxproj">
+      <Project>{0c19070e-efc9-403c-ad41-79dd6f3b0e52}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\NetworkManager\NetworkManager.vcxproj">
+      <Project>{daa23959-260d-4ee1-bb7f-443100ff7d4e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Utils\Utils.vcxproj">
+      <Project>{95a1522d-a200-4f0c-9e57-815eb370d181}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CharSheetManager.cpp" />
+    <ClCompile Include="CreatureEventFunctions.cpp" />
+    <ClCompile Include="LeakFinder.cpp" />
+    <ClCompile Include="noiseutils.cpp" />
+    <ClCompile Include="PlayerEventFunctions.cpp" />
+    <ClCompile Include="SendSystemMailMessage.cpp" />
+    <ClCompile Include="StackWalker.cpp" />
+    <ClCompile Include="Tutorial.cpp" />
+    <ClCompile Include="WorldConfig.cpp" />
+    <ClCompile Include="WorldManager.cpp" />
+    <ClCompile Include="WorldManagerDataBaseHandlers.cpp" />
+    <ClCompile Include="WorldManagerNPCHandlers.cpp" />
+    <ClCompile Include="WorldManagerObjectHandlers.cpp" />
+    <ClCompile Include="WorldManagerPlayerHandlers.cpp" />
+    <ClCompile Include="ZoneServer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CharSheetManager.h" />
+    <ClInclude Include="declspec.h" />
+    <ClInclude Include="LeakFinder.h" />
+    <ClInclude Include="MoodTypes.h" />
+    <ClInclude Include="noiseutils.h" />
+    <ClInclude Include="PlayerEnums.h" />
+    <ClInclude Include="SendSystemMailMessage.h" />
+    <ClInclude Include="SocialChatTypes.h" />
+    <ClInclude Include="StackWalker.h" />
+    <ClInclude Include="Tutorial.h" />
+    <ClInclude Include="Weather.h" />
+    <ClInclude Include="WorldConfig.h" />
+    <ClInclude Include="WorldManager.h" />
+    <ClInclude Include="WorldManagerEnums.h" />
+    <ClInclude Include="ZoneOpcodes.h" />
+    <ClInclude Include="ZoneServer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

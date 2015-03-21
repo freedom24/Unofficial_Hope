@@ -1,6 +1,6 @@
 # Unofficial_Hope
 #
-Disclamer, I do not take credit for any of the work presented here, most of my work has be copy and paste from variouse places.
+Disclamer, I do not take credit for any of the work presented here, most of my work has be copy and paste from variouse places. current how to build will be placed in teh wiki  for this repo (see link to the right)
 
 Project staus's
 * Utils - builds

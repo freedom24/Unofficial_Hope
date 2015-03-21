@@ -8,7 +8,14 @@ Project staus's
 * NetworkManager - builds
 * Common - builds
 
-All others are a work in progress
+* MessageLib - Error	1	error C2338: The C++ Standard doesn't provide a hash for this type.	c:\program files (x86)\microsoft visual studio 11.0\vc\include\xstddef	238	1	MessageLib
+
+* ConnectionServer -Untested
+* PingServer - Untested
+* LoginServer - Untested
+* ChatServer - Untested
+* Zone - Untested
+* Test -Untested -possibly Unneeded
 
 ##What I know so far / to do!##
 

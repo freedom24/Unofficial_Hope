@@ -1,5 +1,15 @@
 # Unofficial_Hope
 #
+Disclamer, I do not take credit for any of the work presented here, most of my work has be copy and paste from variouse places.
+
+Project staus's
+Utils - builds
+DatabaseManager - builds
+NetworkManager - builds
+Common - builds
+
+all others are a work in progress
+
 # MMOServer #
 
 The MMOServer is the flagship project for the [SWG:ANH Team][1]. It is a cross platform massively multiplayer game server intended to emulate the [Star Wars Galaxies][2] Pre-Combat Upgrade experience. The base of the server is written in C++ with some LUA sprinkled in.

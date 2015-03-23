@@ -46,6 +46,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "MessageLib\/messages\baselines_message.h"
 #include "Utils/ConcurrentQueue.h"
 
+
 #define	 gMessageLib	MessageLib::getSingletonPtr()
 
 namespace	swganh	{

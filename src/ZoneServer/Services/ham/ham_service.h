@@ -4,7 +4,7 @@
 #pragma once
 
 #include "ham_service_interface.h"
-#include "anh/app/swganh_kernel.h"
+#include <anh\app\swganh_kernel.h>
 #include <boost/thread/mutex.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <map>

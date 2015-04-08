@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -34,6 +34,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "DatabaseManager/DatabaseCallback.h"
 
+#include "Common/MessageDispatchCallback.h"
+
 #include "Utils/TimerCallback.h"
 
 #include <boost/thread/mutex.hpp>
@@ -55,14 +57,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 typedef std::queue<uint32> TimerEventQueue;
 
-namespace swganh	{
-namespace	database	{
-class Database;
-}}
-
 class AuctionClass;
 class ChatManager;
 class CommoditiesClass;
+class Database;
 class Message;
 class MessageDispatch;
 class Player;
@@ -79,90 +77,87 @@ typedef std::vector<AuctionItem*>	AuctionList;
 
 //======================================================================================================================
 
-class TradeManagerChatHandler : public swganh::database::DatabaseCallback, public TimerCallback
+class TradeManagerChatHandler : public MessageDispatchCallback, public DatabaseCallback, public TimerCallback
 {
-public:
+	public:
 
-    static TradeManagerChatHandler*	getSingletonPtr() {
-        return mSingleton;
-    }
-    static TradeManagerChatHandler*	Init(swganh::database::Database* database,MessageDispatch* dispatch, ChatManager* chatManager);
+		static TradeManagerChatHandler*	getSingletonPtr() { return mSingleton; }
+		static TradeManagerChatHandler*	Init(Database* database,MessageDispatch* dispatch, ChatManager* chatManager);
 
-    ~TradeManagerChatHandler();
+		~TradeManagerChatHandler();
 
-    TradeManagerChatHandler(swganh::database::Database* database,MessageDispatch* dispatch, ChatManager* chatManager);
+		TradeManagerChatHandler(Database* database,MessageDispatch* dispatch, ChatManager* chatManager);
 
-    void				Shutdown();
-    void				Process();
-    // TimerCallback
-    virtual void		handleTimer(uint32 id, void* container);
+		void				Shutdown();
+		void				Process();
+				// TimerCallback
+		virtual void		handleTimer(uint32 id, void* container);
 
-    virtual void		handleDatabaseJobComplete(void* ref,swganh::database::DatabaseResult* result);
+		virtual void		handleDispatchMessage(uint32 opcode,Message* message,DispatchClient* client);
+		virtual void		handleDatabaseJobComplete(void* ref,DatabaseResult* result);
 
-    uint64				getGlobalTickCount() {
-        return mGlobalTickCount;
-    }
+		uint64				getGlobalTickCount(){return mGlobalTickCount;}
 
-    CommoditiesClass*	Commodities;
+		CommoditiesClass*	Commodities;
 
-    uint32				TerminalRegionbyID(uint64 id);
-    uint32				getBazaarRegion(uint64 ID);
-    BString				getBazaarString(uint64 ID);
-    Bazaar*				getBazaarInfo(uint64 ID);
+		uint32				TerminalRegionbyID(uint64 id);
+		uint32				getBazaarRegion(uint64 ID);
+		string				getBazaarString(uint64 ID);
+		Bazaar*				getBazaarInfo(uint64 ID);
 
 
-private:
+	private:
 
-    void				processRetrieveAuctionItemMessage(Message* message,DispatchClient* client);
-    void				processCreateItemMessage(Message* message,DispatchClient* client);
-    void				processHandleIsVendorMessage(Message* message,DispatchClient* client);
-    void				processHandleopAuctionQueryHeadersMessage(Message* message,DispatchClient* client);
-    void				processGetAuctionDetails(Message* message,DispatchClient* client);
-    void				processCancelLiveAuctionMessage(Message* message,DispatchClient* client);
-    void				processBidAuctionMessage(Message* message,DispatchClient* client);
-    void				ProcessCreateAuction(Message* message,DispatchClient* client);
-    void				processAuctionBid(TradeManagerAsyncContainer* asynContainer, Player* player);
-    void				ProcessRequestTypeList(Message* message,DispatchClient* client);
+		void				processRetrieveAuctionItemMessage(Message* message,DispatchClient* client);
+		void				processCreateItemMessage(Message* message,DispatchClient* client);
+		void				processHandleIsVendorMessage(Message* message,DispatchClient* client);
+		void				processHandleopAuctionQueryHeadersMessage(Message* message,DispatchClient* client);
+		void				processGetAuctionDetails(Message* message,DispatchClient* client);
+		void				processCancelLiveAuctionMessage(Message* message,DispatchClient* client);
+		void				processBidAuctionMessage(Message* message,DispatchClient* client);
+		void				ProcessCreateAuction(Message* message,DispatchClient* client);
+		void				processAuctionBid(TradeManagerAsyncContainer* asynContainer, Player* player);
+		void				ProcessRequestTypeList(Message* message,DispatchClient* client);
 
-    void				ProcessBankTip(Message* message,DispatchClient* client);
-    void				processAuctionEMails(AuctionItem* AuctionTemp);
+		void				ProcessBankTip(Message* message,DispatchClient* client);
+		void				processAuctionEMails(AuctionItem* AuctionTemp);
 
-    // process chat timers
-    void				handleGlobalTickPreserve();
-    void				processTimerEvents();
-    void				handleGlobalTickUpdate();
-    void				handleCheckAuctions();
+		// process chat timers
+		void				handleGlobalTickPreserve();
+		void				processTimerEvents();
+		void				handleGlobalTickUpdate();
+		void				handleCheckAuctions();
 
 
 
-    static TradeManagerChatHandler*	mSingleton;
-    static bool					mInsFlag;
+		static TradeManagerChatHandler*	mSingleton;
+		static bool					mInsFlag;
 
-    BazaarList					mBazaars;
-    AttributesList				mAtrributesList;
+		BazaarList					mBazaars;
+		AttributesList				mAtrributesList;
 
-    AuctionClass*				auction;
+		AuctionClass*				auction;
 
-    ListStringStruct*			ListStringHandler;
-    ListStringList				mListStringList;
+		ListStringStruct*			ListStringHandler;
+		ListStringList				mListStringList;
 
-    swganh::database::Database*	mDatabase;
-    MessageDispatch*			mMessageDispatch;
-    TRMPermissionType			mPermissionTyp;
-    bool						mBazaarsLoaded;
-    uint32						mBazaarCount;
-    PlayerAccountMap			mPlayerAccountMap;
+		Database*					mDatabase;
+		MessageDispatch*			mMessageDispatch;
+		TRMPermissionType			mPermissionTyp;
+		bool						mBazaarsLoaded;
+		uint32						mBazaarCount;
+		PlayerAccountMap			mPlayerAccountMap;
 
-    ChatManager*				mChatManager;
+		ChatManager*				mChatManager;
 
-    uint64      				mGlobalTickCount;
-    TimerList					mTimers;
-    TimerEventQueue				mTimerEventQueue;
-    boost::mutex                mTimerMutex;
-    uint64						mTimerQueueProcessTimeLimit;
-    uint32						mBazaarMaxBid;
+		uint64      				mGlobalTickCount;
+		TimerList					mTimers;
+		TimerEventQueue				mTimerEventQueue;
+        boost::mutex                mTimerMutex;
+		uint64						mTimerQueueProcessTimeLimit;
+		uint32						mBazaarMaxBid;
 
-    AuctionList					mAuction;
+		AuctionList					mAuction;
 
 
 

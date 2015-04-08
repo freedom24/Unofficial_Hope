@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -25,11 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "ZoneServer/Objects/Creature Object/CreatureObject.h"
-#include "ZoneServer/Objects/Player Object/PlayerObject.h"
-#include "ZoneServer/WorldManager.h"
+#include "CreatureObject.h"
+#include "PlayerObject.h"
+#include "WorldManager.h"
 #include "MessageLib/MessageLib.h"
-#include "ZoneServer/GameSystemManagers/State Manager/StateManager.h"
+#include "LogManager/LogManager.h"
+
 
 //=============================================================================
 //
@@ -38,7 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 void CreatureObject::onIncapRecovery(const IncapRecoveryEvent* event)
 {
-	if (isDead())
+	if (mPosture == CreaturePosture_Dead)
 	{
 		// Forget it, you are dead!
 		return;
@@ -48,16 +49,32 @@ void CreatureObject::onIncapRecovery(const IncapRecoveryEvent* event)
 	{
 		mCurrentIncapTime = 0;
 		gMessageLib->sendIncapTimerUpdate(this);
-        // unblock so we can transition out
-        this->states.unblock();
-		gStateManager.setCurrentPostureState(this, CreaturePosture_Upright);
+
+		// update the posture
+		mPosture = CreaturePosture_Upright;
 
 		// reset ham regeneration
-		//if (mHam.getTaskId() == 0)
-		//{
-		//	mHam.setTaskId(gWorldManager->addCreatureHamToProccess(&mHam));
-		//}
+		mHam.updateRegenRates();
+		if (mHam.getTaskId() == 0)
+		{
+			mHam.setTaskId(gWorldManager->addCreatureHamToProccess(&mHam));
+		}
+
+		updateMovementProperties();
+
+		gMessageLib->sendPostureAndStateUpdate(this);
+
+		if(PlayerObject* player = dynamic_cast<PlayerObject*>(this))
+		{
+			gMessageLib->sendUpdateMovementProperties(player);
+			gMessageLib->sendSelfPostureUpdate(player);
+		}
 	}
+	else if (this->getType() == ObjType_Creature)
+	{
+		// Placeholder for debug purpose only.
+	}
+	
 }
 
 //=============================================================================

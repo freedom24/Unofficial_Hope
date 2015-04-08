@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -30,22 +30,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "NetworkManager/NetworkClient.h"
 
-namespace swganh {
-namespace loginserver {
 
 //======================================================================================================================
 enum LoginClientState
 {
-    LCSTATE_ClientCreated,
-    LCSTATE_ServerHelloSent,
-    LCSTATE_QueryServerList,
-    LCSTATE_QueryCharacterList,
-    LCSTATE_DeleteCharacter,
-    LCSTATE_UpdateServerStatus,
-    LCSTATE_RetrieveAccountId,
-    LCSTATE_RetrieveSessionKey,
-    LCSTATE_End,
-	LCSTATE_QueryAutoCreate
+  LCSTATE_ClientCreated,
+  LCSTATE_ServerHelloSent,
+  LCSTATE_QueryAuth,
+  LCSTATE_QueryServerList,
+  LCSTATE_QueryCharacterList,
+  LCSTATE_DeleteCharacter,
+  LCSTATE_UpdateServerStatus,
+  LCSTATE_End
 };
 
 
@@ -53,58 +49,32 @@ enum LoginClientState
 class LoginClient : public NetworkClient
 {
 public:
-    LoginClient(void) : mState(LCSTATE_ClientCreated) {};
-    virtual                     ~LoginClient(void) {};
+                              LoginClient(void) : mState(LCSTATE_ClientCreated) {};
+  virtual                     ~LoginClient(void) {};
 
-    LoginClientState            getState(void)                            {
-        return mState;
-    };
-    uint32                      getAccountId(void)                        {
-        return mAccountId;
-    };
-    BString&                     getUsername(void)                         {
-        return mUsername;
-    };
-    BString&                     getPassword(void)                         {
-        return mPassword;
-    };
-    uint32                      getCharsAllowed()                         {
-        return mCharsAllowed;
-    }
-    int8						  getCsr()									{
-        return mCsr;
-    }
+  LoginClientState            getState(void)                            { return mState; };
+  uint32                      getAccountId(void)                        { return mAccountId; };
+  string&                     getUsername(void)                         { return mUsername; };
+  string&                     getPassword(void)                         { return mPassword; };
+  uint32                      getCharsAllowed()                         { return mCharsAllowed; }
+  int8						  getCsr()									{ return mCsr; }
 
-    void                        setState(LoginClientState state)          {
-        mState = state;
-    };
-    void                        setAccountId(uint32 id)                   {
-        mAccountId = id;
-    };
-    void                        setUsername(BString username)              {
-        mUsername = username;
-    };
-    void                        setPassword(BString password)              {
-        mPassword = password;
-    };
-    void                        setCharsAllowed(uint32 count)             {
-        mCharsAllowed = count;
-    }
-    void                        setCsr(int8 csr)							{
-        mCsr = csr;
-    };
+  void                        setState(LoginClientState state)          { mState = state; };
+  void                        setAccountId(uint32 id)                   { mAccountId = id; };
+  void                        setUsername(string username)              { mUsername = username; };
+  void                        setPassword(string password)              { mPassword = password; };
+  void                        setCharsAllowed(uint32 count)             { mCharsAllowed = count; }
+  void                        setCsr(int8 csr)							{ mCsr = csr; };
 private:
-    LoginClientState            mState;
-    uint32                      mAccountId;
-    BString                      mUsername;
-    BString                      mPassword;
-    uint32                      mCharsAllowed;
-    int8						  mCsr;
+  LoginClientState            mState;
+  uint32                      mAccountId;
+  string                      mUsername;
+  string                      mPassword;
+  uint32                      mCharsAllowed;
+  int8						  mCsr;
 };
 
 
-}//loginserver
-}//swganh
 
 #endif // ANH_LOGINSERVER_LOGINCLIENT_H
 

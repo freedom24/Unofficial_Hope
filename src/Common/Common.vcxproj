@@ -11,40 +11,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ApplicationService.cc" />
-    <ClCompile Include="atMacroString.cc" />
-    <ClCompile Include="BuildInfo.cc" />
-    <ClCompile Include="byte_buffer.cc" />
-    <ClCompile Include="byte_buffer_unittest.cc" />
-    <ClCompile Include="Crc.cc" />
-    <ClCompile Include="crc_unittest.cc" />
-    <ClCompile Include="Event.cc" />
-    <ClCompile Include="EventDispatcher.cc" />
-    <ClCompile Include="event_dispatcher_unittest.cc" />
-    <ClCompile Include="event_unittest.cc" />
-    <ClCompile Include="HashString.cc" />
-    <ClCompile Include="hash_string_unittest.cc" />
-    <ClCompile Include="OutOfBand.cc" />
-    <ClCompile Include="out_of_band_unittest.cc" />
-    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="atMacroString.cpp" />
+    <ClCompile Include="BuildInfo.cpp" />
+    <ClCompile Include="bytebuffer.cpp" />
+    <ClCompile Include="DispatchClient.cpp" />
+    <ClCompile Include="MessageDispatch.cpp" />
+    <ClCompile Include="MessageFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ApplicationService.h" />
     <ClInclude Include="atMacroString.h" />
     <ClInclude Include="BuildInfo.h" />
-    <ClInclude Include="byte_buffer-inl.h" />
-    <ClInclude Include="byte_buffer.h" />
-    <ClInclude Include="Crc.h" />
-    <ClInclude Include="declspec.h" />
-    <ClInclude Include="Event.h" />
-    <ClInclude Include="EventDispatcher.h" />
-    <ClInclude Include="HashString.h" />
-    <ClInclude Include="IServer.h" />
-    <ClInclude Include="OutOfBand.h" />
-    <ClInclude Include="Server.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="CMakeLists.txt" />
+    <ClInclude Include="bytebuffer.h" />
+    <ClInclude Include="DispatchClient.h" />
+    <ClInclude Include="Message.h" />
+    <ClInclude Include="MessageDispatch.h" />
+    <ClInclude Include="MessageDispatchCallback.h" />
+    <ClInclude Include="MessageFactory.h" />
+    <ClInclude Include="MessageOpcodes.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{432DCBE9-1F49-49FF-9753-BE806192A917}</ProjectGuid>
@@ -92,7 +75,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_VARIADIC_MAX=10;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;BOOST_HAS_STDINT_H;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)src;</AdditionalIncludeDirectories>
     </ClCompile>
@@ -108,9 +91,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;BOOST_HAS_STDINT_H;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)src;</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

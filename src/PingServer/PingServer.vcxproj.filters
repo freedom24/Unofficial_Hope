@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="PingServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -11,28 +11,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="active_object_unittest.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ActiveObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="bstring.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cmpistr_unittest.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="concurrent_queue_unittest.cc">
+    <ClCompile Include="clock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EventHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="math_functions_unittest.cc">
+    <ClCompile Include="mdump.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MathFunctions.cpp">
+    <ClCompile Include="rand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StreamColors.cpp">
@@ -49,13 +43,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ActiveObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="bstring.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BufferedConcurrentQueue.h">
+    <ClInclude Include="clock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="colors.h">
@@ -64,13 +55,7 @@
     <ClInclude Include="concurrent_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ConcurrentQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EventHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="export.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FastDelegate.h">
@@ -82,7 +67,7 @@
     <ClInclude Include="lockfree_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MathFunctions.h">
+    <ClInclude Include="mdump.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PriorityVector.h">
@@ -91,7 +76,10 @@
     <ClInclude Include="queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Singleton.h">
+    <ClInclude Include="rand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stack.h">

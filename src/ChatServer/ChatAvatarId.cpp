@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "ChatManager.h"
 #include "Player.h"
 
-#include "anh/logger.h"
+#include "LogManager/LogManager.h"
 
 #include "Utils/typedefs.h"
 
@@ -41,51 +41,51 @@ ChatSystemAvatar*	ChatSystemAvatar::mSingleton = NULL;
 
 void ChatAvatarId::setPlayer(Player* player)
 {
-    mPlayer = player;
-    //string lcName = BString(BSTRType_ANSI, player->getName().getLength());
-    //memcpy(lcName.getRawData(), player->getName().getRawData(), lcName.getLength());
-    //lcName.toLower();
-    mName = player->getName();
-    mName.toLower();
-    DLOG(info) << "Chatavatar:: setplayer " << mName.getAnsi();
+	mPlayer = player;
+	//string lcName = BString(BSTRType_ANSI, player->getName().getLength());
+	//memcpy(lcName.getRawData(), player->getName().getRawData(), lcName.getLength());
+	//lcName.toLower();
+	mName = player->getName();
+	mName.toLower();
+	gLogger->log(LogManager::DEBUG,"Chatavatar:: setplayer %s\n", mName.getAnsi());
 }
 
 //======================================================================================================================
 
-void ChatAvatarId::setPlayer(const BString player)
+void ChatAvatarId::setPlayer(const string player)
 {
-	DLOG(info) << "Chatavatar:: setplayer " << mName.getAnsi() << " string only";
-    mPlayer = gChatManager->getPlayerByName(player);
-
-    mName = player;
-    mName.toLower();
+	gLogger->log(LogManager::DEBUG,"Chatavatar:: setplayer %s string only\n", mName.getAnsi());
+	mPlayer = gChatManager->getPlayerByName(player); 
+	
+	mName = player;
+	mName.toLower();
 }
 
 //======================================================================================================================
 
-BString ChatAvatarId::getPath()
+string ChatAvatarId::getPath()
 {
-    BString path = "SWG.";
-    path << mGalaxy.getAnsi() << ".";
-    path << mName.getAnsi();
-    return path;
+	BString path = "SWG.";
+	path << mGalaxy.getAnsi() << ".";
+	path << mName.getAnsi();
+	return path;
 }
 
 //======================================================================================================================
 
 ChatSystemAvatar* ChatSystemAvatar::GetSingleton()
 {
-    if (!mInsFlag)
-    {
-        mSingleton = new ChatSystemAvatar();
-        mInsFlag = true;
-    }
-    return mSingleton;
+	if (!mInsFlag)
+	{
+		mSingleton = new ChatSystemAvatar();
+		mInsFlag = true;
+	}
+	return mSingleton;
 }
 
 //======================================================================================================================
 
-BString ChatSystemAvatar::getLoweredName()
+string ChatSystemAvatar::getLoweredName()
 {
-    return BString("SYSTEM");
+	return BString("SYSTEM");
 }

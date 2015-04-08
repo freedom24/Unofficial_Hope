@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -31,31 +31,41 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <cstring>
 
-#include <boost/optional.hpp>
-
-#include "DatabaseManager/DatabaseCallback.h"
-
-namespace swganh {
-namespace database {
-
+//======================================================================================================================
+class DatabaseCallback;
 class DatabaseResult;
 class DataBinding;
 
-struct DatabaseJob {
-public:
-    DatabaseJob() 
-        : old_callback(NULL)
-        , result(NULL)
-        , client_reference(NULL)
-        , multi_job(false) 
-    {}
 
-    boost::optional<AsyncDatabaseCallback> callback;
-    DatabaseCallback* old_callback;
-    DatabaseResult* result;
-    void* client_reference;
-    std::string query;
-    bool multi_job;
+//======================================================================================================================
+class DatabaseJob
+{
+public:
+	DatabaseJob() : mDatabaseCallback(NULL),mDatabaseResult(NULL),mClientReference(NULL),mMultiJob(false){}
+  DatabaseCallback*           getCallback(void)                               { return mDatabaseCallback; }
+  DatabaseResult*             getDatabaseResult(void)                         { return mDatabaseResult; };
+  void*                       getClientReference(void)                        { return mClientReference; }
+  int8*                       getSql(void)                                    { return mSql; }
+
+  void                        setCallback(DatabaseCallback* callback)         { mDatabaseCallback = callback; }
+  void                        setDatabaseResult(DatabaseResult* result)       { mDatabaseResult = result; }
+  void                        setClientReference(void* ref)                   { mClientReference = ref; }
+  void                        setSql(int8* sql)                               { strcpy(mSql, sql); }
+  void						  setMultiJob(bool job){ mMultiJob = job; }
+  bool						  isMultiJob(){ return mMultiJob; }
+
+private:
+  DatabaseCallback*           mDatabaseCallback;
+  DatabaseResult*             mDatabaseResult;
+  void*                       mClientReference;
+  int8                        mSql[8192];
+  bool						  mMultiJob;
 };
-}}
+
+
+
+
 #endif // ANH_DATABASEMANAGER_DATABASEJOB_H
+
+
+

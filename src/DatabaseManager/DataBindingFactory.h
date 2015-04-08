@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,33 +28,41 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_DATABASEMANAGER_DATABINDINGFACTORY_H
 #define ANH_DATABASEMANAGER_DATABINDINGFACTORY_H
 
-#include <cstdint>
 
-#include <boost/noncopyable.hpp>
+#include "Utils/typedefs.h"
 #include <boost/pool/pool.hpp>
 
-namespace swganh {
-namespace database {
+
+//======================================================================================================================
 
 class DataBinding;
-struct DataField;
+class DataField;
 
-class DataBindingFactory : private boost::noncopyable {
-public:
-    DataBindingFactory();
-    ~DataBindingFactory();
+//======================================================================================================================
 
-    DataBinding* createDataBinding(uint16_t fieldCount);
-    void destroyDataBinding(DataBinding* binding);
+class DataBindingFactory
+{
+	public:
 
-    bool releasePoolMemory() {
-        return(binding_pool_.release_memory());
-    }
+		DataBindingFactory(void);
+		~DataBindingFactory(void);
 
-private:
-    boost::pool<boost::default_user_allocator_malloc_free>	binding_pool_;
+		DataBinding*	CreateDataBinding(uint16 fieldCount);
+		void			DestroyDataBinding(DataBinding* binding);
+
+		bool			releasePoolMemory(){ return(mDataBindingPool.release_memory()); }
+
+	private:
+
+		boost::pool<boost::default_user_allocator_malloc_free>	mDataBindingPool;
 };
 
-}}
+//======================================================================================================================
 
 #endif // ANH_DATABASEMANAGER_DATABINDINGFACTORY_H
+
+
+
+
+
+

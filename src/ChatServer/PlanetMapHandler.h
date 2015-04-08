@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -29,65 +29,64 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define ANH_ADMINSERVER_PLANETMAPHANDLER_H
 
 #include "DatabaseManager/DatabaseCallback.h"
+#include "Common/MessageDispatchCallback.h"
 #include "Utils/typedefs.h"
-#include "Utils/bstring.h"
 
 
 //======================================================================================================================
 class Message;
-
-namespace swganh	{
-namespace	database	{
 class Database;
 class DataBinding;
-}}
 class MessageDispatch;
 class DispatchClient;
 
 class MapLocation
 {
 public:
-    uint64		mId;
-    int8  		mName[64];
-    uint8		  mCategory;
-    uint8		  mSubCategory;
-    float		  mX;
-    float		  mZ;
-    uint8		  mListIcon;
+  uint64		mId;
+  int8  		mName[64];
+  uint8		  mCategory;
+  uint8		  mSubCategory;
+  float		  mX;
+  float		  mZ;
+  uint8		  mListIcon;
 };
 
 class PlanetMapHandlerAsyncContainer
 {
 public:
-    DispatchClient*     mClient;
-    BString              mPlanetName;
+  DispatchClient*     mClient;
+  string              mPlanetName;
 };
 
 
 //======================================================================================================================
-class PlanetMapHandler : public swganh::database::DatabaseCallback
+class PlanetMapHandler : public MessageDispatchCallback, public DatabaseCallback
 {
 public:
 
-    PlanetMapHandler(swganh::database::Database* database, MessageDispatch* dispatch);
-    ~PlanetMapHandler();
+	                              PlanetMapHandler(Database* database, MessageDispatch* dispatch);
+	                              ~PlanetMapHandler();
 
-    void			                    Process();
+	void			                    Process();
 
-    // Inherited from DatabaseCallback
-    virtual void                   handleDatabaseJobComplete(void* ref, swganh::database::DatabaseResult* result);
+  // Inherited from MessageDispatchCallback
+	virtual void	                handleDispatchMessage(uint32 opcode, Message* message, DispatchClient* client);
+
+  // Inherited from DatabaseCallback  
+  virtual void                   handleDatabaseJobComplete(void* ref, DatabaseResult* result);
 
 private:
 
-    void                          _processMapLocationsRequest(Message* message, DispatchClient* client);
+	void                          _processMapLocationsRequest(Message* message, DispatchClient* client);
 
 
-    swganh::database::Database*                 mDatabase;
-    swganh::database::DataBinding*              mDataBinding;
-    MessageDispatch*							mMessageDispatch;
+	Database*                     mDatabase;
+  DataBinding*                  mDataBinding;
+	MessageDispatch*              mMessageDispatch;
 };
 
 
-#endif
+#endif 
 
 

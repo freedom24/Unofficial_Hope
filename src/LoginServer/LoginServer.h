@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -29,44 +29,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define ANH_LOGINSERVER_ZONESERVER_H
 
 #include "Utils/typedefs.h"
-#include "Common/Server.h"
 
+//======================================================================================================================
 class NetworkManager;
 class Service;
-
-namespace swganh {
-
-namespace database{
-	class DatabaseManager;
-	class Database;
-}
-	
-namespace loginserver {
-
-
 class LoginManager;
-
+class DatabaseManager;
+class Database;
 
 
 //======================================================================================================================
-class LoginServer : public common::BaseServer
+class LoginServer
 {
-public:
-    LoginServer(int argc, char* argv[]);
-    ~LoginServer(void);
+	public:
+		LoginServer(void);
+		~LoginServer(void);
 
-    void	Process(void);
+		void	Process(void);
 
 private:
-    NetworkManager*									mNetworkManager;
-    Service*										mService;
-    database::DatabaseManager*						mDatabaseManager;
-    database::Database*								mDatabase;
-    LoginManager*									mLoginManager;
+	NetworkManager*									mNetworkManager;
+  Service*                        mService;
+	DatabaseManager*								mDatabaseManager;
+	Database*												mDatabase;
+  LoginManager*                   mLoginManager;
 };
 
-}//loginserver
-}//database
+
 
 #endif // ANH_LOGINSERVER_ZONESERVER_H
 

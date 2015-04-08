@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,25 +28,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_DATABASEMANAGER_ACCOUNTDATA_H
 #define ANH_DATABASEMANAGER_ACCOUNTDATA_H
 
-#include <cstdint>
 #include "Utils/typedefs.h"
-#include "Utils/bstring.h"
 
-namespace swganh {
-namespace loginserver {
 
 // These are for DB queries.
 //======================================================================================================================
-struct AccountData
+class AccountData
 {
-    uint64_t            mId;
-    int8                  mUsername[32];
-    int8                  mPassword[32];
-    uint32                mAccountId;
-    int8                  mBanned;
-    int8                  mActive;
-    uint32                mCharsAllowed;
-    int8					mCsr;
+public:
+  uint32                mId;
+  int8                  mUsername[32];
+  int8                  mPassword[32];
+  uint32                mAccountId;
+  int8                  mBanned;
+  int8                  mActive;
+  uint32                mCharsAllowed;
+  int8					mCsr;
 };
 
 
@@ -54,27 +51,16 @@ struct AccountData
 class ServerData
 {
 public:
-    uint32                mId;
-    BString                mName;
-    BString                mAddress;
-    uint16                mConnectionPort;
-    uint16                mPingPort;
-    uint32                mPopulation;
-    uint32                mStatus;
-    uint32                mLastUpdate;
+  uint32                mId;
+  string                mName;
+  string                mAddress;
+  uint16                mConnectionPort;
+  uint16                mPingPort;
+  uint32                mPopulation;
+  uint32                mStatus;
+  uint32                mLastUpdate;
 };
 
-//======================================================================================================================
-// Session_Key is used by the launcher
-//======================================================================================================================
-class SessionKeyData
-{
-public:
-    BString             mSessionKey;
-};
-
-}//loginserve
-}//swganh
 
 #endif // ANH_DATABASEMANAGER_ACCOUNTDATA_H
 

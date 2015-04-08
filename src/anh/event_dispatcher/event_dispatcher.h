@@ -26,10 +26,6 @@
 #include <functional>
 //#include <future>
 #include <memory>
-
-//Obi 
-//#include <string>
-//end Obi
 #include <unordered_map>
 #include <vector>
 
@@ -42,16 +38,6 @@
 #include <boost/thread/shared_mutex.hpp>
 
 #include "anh/hash_string.h"
-// Obi 
-/*
-int main()
-{
-    std::unordered_map<std::string, int> map;
-    map["string"] = 10;
-    return 0;
-}
-//end Obi 
-*/
 
 
 namespace boost {

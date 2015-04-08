@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -31,72 +31,65 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <boost/thread/recursive_mutex.hpp>
 #include <queue>
 
+
 //======================================================================================================================
 
 namespace Anh_Utils
 {
-template<class T,class Container = std::deque<T>,class QueueMutex = boost::recursive_mutex >
-class concurrent_queue
-{
-public:
+	template<class T,class Container = std::deque<T>,class QueueMutex = boost::recursive_mutex >
+	class concurrent_queue
+	{
+		public:
 
-    void push(const T& item)
-    {
-        boost::recursive_mutex::scoped_lock lk(mMutex);
+			void push(const T& item)
+			{
+                boost::recursive_mutex::scoped_lock lk(mMutex);
 
-        mContainer.push_back(item);
-    }
+				mContainer.push_back(item);
+			}
 
-    T pop()
-    {
-        boost::recursive_mutex::scoped_lock lk(mMutex);
+			T pop()
+			{
+                boost::recursive_mutex::scoped_lock lk(mMutex);
 
-        T item = mContainer.front();
-        mContainer.pop_front();
+				T item = mContainer.front();
+				mContainer.pop_front();
 
-        return(item);
-    }
+				return(item);
+			}
 
-    bool empty() const
-    {
-        boost::recursive_mutex::scoped_lock lk(mMutex);
+			bool empty() const
+			{
+                boost::recursive_mutex::scoped_lock lk(mMutex);
 
-        bool result = mContainer.empty();
+				bool result = mContainer.empty();
 
-        return(result);
-    }
+				return(result);
+			}
 
-    typename Container::size_type size()
-    {
-        boost::recursive_mutex::scoped_lock lk(mMutex);
+			typename Container::size_type size()
+			{
+                boost::recursive_mutex::scoped_lock lk(mMutex);
 
-        size_t result = mContainer.size();
+				size_t result = mContainer.size();
 
-        return(result);
-    }
+				return(result);
+			}
 
-    T& front()
-    {
-        boost::recursive_mutex::scoped_lock lk(mMutex);
+			T& front()
+			{
+                boost::recursive_mutex::scoped_lock lk(mMutex);
 
-        T item = mContainer.front();
+				T item = mContainer.front();
 
-        return(item);
-    }
+				return(item);
+			}
 
-private:
+		private:
 
-    // Win32 complains about stl during linkage, disable the warning.
-#ifdef _WIN32
-#pragma warning (disable : 4251)
-#endif
-    Container		mContainer;
-    QueueMutex		mMutex;
-    // Re-enable the warning.
-#ifdef _WIN32
-#pragma warning (default : 4251)
-#endif
-};
+			Container		mContainer;
+			QueueMutex		mMutex;
+	};
 }
 
 //======================================================================================================================

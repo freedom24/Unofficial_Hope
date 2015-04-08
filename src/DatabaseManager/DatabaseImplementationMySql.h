@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,45 +28,45 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_DATABASEMANAGER_DATABASEIMPLEMENTATIONMYSQL_H
 #define ANH_DATABASEMANAGER_DATABASEIMPLEMENTATIONMYSQL_H
 
-#include <cstdint>
-#include <memory>
-#include <string>
+#include "DatabaseImplementation.h"
+#include "Utils/typedefs.h"
 
-#include <boost/noncopyable.hpp>
-
-#include "DatabaseManager/DatabaseImplementation.h"
-
-namespace sql {
-    class Connection;
-    class ResultSet;
-    class Statement;
-}
-namespace swganh {
-namespace database {
-
-class DataBinding;
+//======================================================================================================================
 class DatabaseResult;
 
-class DatabaseImplementationMySql : public DatabaseImplementation , private boost::noncopyable {
+typedef struct st_mysql MYSQL;
+typedef struct st_mysql_res MYSQL_RES;
+typedef struct st_mysql_rows MYSQL_ROWS;
+
+
+//======================================================================================================================
+
+class DatabaseImplementationMySql : public DatabaseImplementation
+{
 public:
-    DatabaseImplementationMySql(const std::string& host, uint16_t port, const std::string& user, const std::string& pass, const std::string& schema);
-    ~DatabaseImplementationMySql();
+									 DatabaseImplementationMySql(char* host, uint16 port, char* user, char* pass, char* schema);
+  virtual							~DatabaseImplementationMySql(void);
+  
+  virtual DatabaseResult*			ExecuteSql(int8* sql,bool procedure = false);
+  virtual DatabaseWorkerThread*		DestroyResult(DatabaseResult* result);
 
-    DatabaseResult* executeSql(const std::string& sql, bool procedure = false);
-    void destroyResult(DatabaseResult* result);
+  virtual void						GetNextRow(DatabaseResult* result, DataBinding* binding, void* object);
+  virtual void						ResetRowIndex(DatabaseResult* result, uint64 index = 0);
+  virtual uint64					GetInsertId(void);
 
-    void getNextRow(DatabaseResult* result, DataBinding* binding, void* object) const;
-    void resetRowIndex(DatabaseResult* result, uint64_t index = 0) const;
-
-    uint32_t escapeString(char* target, const char* source, uint32_t length);
-    
-    std::string escapeString(const std::string& source);
+  virtual uint32					Escape_String(int8* target,const int8* source,uint32 length);
 
 private:
-    void processFieldBinding_(std::unique_ptr<sql::ResultSet>& result, DataBinding* binding, uint32_t field_id, void* object) const;
-
-    std::unique_ptr<sql::Connection> connection_;
-    std::unique_ptr<sql::Statement> statement_;
+  MYSQL*                      mConnection;
+  MYSQL_RES*                  mResultSet;
 };
-}}
+
+
+
+
 #endif // ANH_DATABASEMANAGER_DATABASEIMPLEMENTATIONMYSQL_H
+
+
+
+
+

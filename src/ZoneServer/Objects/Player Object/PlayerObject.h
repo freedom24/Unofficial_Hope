@@ -79,6 +79,7 @@ typedef swganh::event_dispatcher::ChainEvent<std::shared_ptr<PlayerObject>> Play
 //=============================================================================
 
 
+
 class PlayerObject : public IntangibleObject
 {
     friend class PlayerObjectFactory;

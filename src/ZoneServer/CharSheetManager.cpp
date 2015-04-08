@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -26,29 +26,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "CharSheetManager.h"
 
+#include "Badge.h"
+#include "Bank.h"
+#include "PlayerObject.h"
+#include "WorldManager.h"
+#include "Inventory.h"
+#include "ZoneOpcodes.h"
 
-#include "anh/logger.h"
-
-#include "Zoneserver/Objects/Badge.h"
-#include "Zoneserver/Objects/Bank.h"
-#include "ZoneServer/Objects/Player Object/PlayerObject.h"
-#include "ZoneServer/WorldManager.h"
-#include "Zoneserver/Objects/Inventory.h"
-#include "ZoneServer/ZoneOpcodes.h"
-
-#include "ZoneServer\Services\equipment\equipment_service.h"
+#include "LogManager/LogManager.h"
 
 #include "DatabaseManager/Database.h"
 #include "DatabaseManager/DatabaseResult.h"
 #include "DatabaseManager/DataBinding.h"
 
-#include "NetworkManager/DispatchClient.h"
-#include "NetworkManager/Message.h"
-#include "NetworkManager/MessageDispatch.h"
-#include "NetworkManager/MessageFactory.h"
+#include "Common/DispatchClient.h"
+#include "Common/Message.h"
+#include "Common/MessageDispatch.h"
+#include "Common/MessageFactory.h"
 
-using namespace swganh;
-using namespace database;
 
 //=========================================================================================
 
@@ -57,229 +52,238 @@ CharSheetManager*	CharSheetManager::mSingleton = NULL;
 
 //=========================================================================================
 
-CharSheetManager::CharSheetManager(swganh::database::Database* database,MessageDispatch* dispatch) :
-    mDatabase(database),
-    mMessageDispatch(dispatch),
-    mDBAsyncPool(sizeof(CSAsyncContainer))
+CharSheetManager::CharSheetManager(Database* database,MessageDispatch* dispatch) :
+mDatabase(database),
+mMessageDispatch(dispatch),
+mDBAsyncPool(sizeof(CSAsyncContainer))
 {
-    _registerCallbacks();
+	_registerCallbacks();
+	_loadCommandMap();
 
-    //gLogger->log(LogManager::DEBUG,"Started Loading Factions.");
-    mDatabase->executeSqlAsync(this, new(mDBAsyncPool.malloc()) CSAsyncContainer(CharSheetQuery_Factions), "SELECT * FROM %s.faction ORDER BY id;",mDatabase->galaxy());
-    
+	//gLogger->log(LogManager::DEBUG,"Started Loading Factions.");
+	mDatabase->ExecuteSqlAsync(this,new(mDBAsyncPool.malloc()) CSAsyncContainer(CharSheetQuery_Factions),"SELECT * FROM faction ORDER BY id");
 }
 
 //=========================================================================================
 
-CharSheetManager* CharSheetManager::Init(swganh::database::Database* database,MessageDispatch* dispatch)
+CharSheetManager* CharSheetManager::Init(Database* database,MessageDispatch* dispatch)
 {
-    if(mInsFlag == false)
-    {
-        mSingleton = new CharSheetManager(database,dispatch);
-        mInsFlag = true;
-        return mSingleton;
-    }
-    else
-        return mSingleton;
+	if(mInsFlag == false)
+	{
+		mSingleton = new CharSheetManager(database,dispatch);
+		mInsFlag = true;
+		return mSingleton;
+	}
+	else
+		return mSingleton;
 }
 
 //=========================================================================================
 
 void CharSheetManager::_registerCallbacks()
 {
-    mMessageDispatch->RegisterMessageCallback(opFactionRequestMessage,std::bind(&CharSheetManager::_processFactionRequest, this, std::placeholders::_1, std::placeholders::_2));
-    mMessageDispatch->RegisterMessageCallback(opPlayerMoneyRequest,std::bind(&CharSheetManager::_processPlayerMoneyRequest, this, std::placeholders::_1, std::placeholders::_2));
-    mMessageDispatch->RegisterMessageCallback(opStomachRequestMessage,std::bind(&CharSheetManager::_processStomachRequest, this, std::placeholders::_1, std::placeholders::_2));
-    mMessageDispatch->RegisterMessageCallback(opGuildRequestMessage,std::bind(&CharSheetManager::_processGuildRequest, this, std::placeholders::_1, std::placeholders::_2));
+	mMessageDispatch->RegisterMessageCallback(opFactionRequestMessage,this);
+	mMessageDispatch->RegisterMessageCallback(opPlayerMoneyRequest,this);
+	mMessageDispatch->RegisterMessageCallback(opStomachRequestMessage,this);
+	mMessageDispatch->RegisterMessageCallback(opGuildRequestMessage,this);
 }
 
 //=========================================================================================
 
 void CharSheetManager::_unregisterCallbacks()
 {
-    mMessageDispatch->UnregisterMessageCallback(opFactionRequestMessage);
-    mMessageDispatch->UnregisterMessageCallback(opPlayerMoneyRequest);
-    mMessageDispatch->UnregisterMessageCallback(opStomachRequestMessage);
-    mMessageDispatch->UnregisterMessageCallback(opGuildRequestMessage);
+	mMessageDispatch->UnregisterMessageCallback(opFactionRequestMessage);
+	mMessageDispatch->UnregisterMessageCallback(opPlayerMoneyRequest);
+	mMessageDispatch->UnregisterMessageCallback(opStomachRequestMessage);
+	mMessageDispatch->UnregisterMessageCallback(opGuildRequestMessage);
+}
+
+//=========================================================================================
+
+void CharSheetManager::_loadCommandMap()
+{
+	mCommandMap.insert(std::make_pair(opFactionRequestMessage,&CharSheetManager::_processFactionRequest));
+	mCommandMap.insert(std::make_pair(opPlayerMoneyRequest,&CharSheetManager::_processPlayerMoneyRequest));
+	mCommandMap.insert(std::make_pair(opStomachRequestMessage,&CharSheetManager::_processStomachRequest));
+	mCommandMap.insert(std::make_pair(opGuildRequestMessage,&CharSheetManager::_processGuildRequest));
 }
 
 //=========================================================================================
 
 CharSheetManager::~CharSheetManager()
 {
-    _unregisterCallbacks();
+	_unregisterCallbacks();
+	mCommandMap.clear();
 
-	uint32 count = mvBadges.size();
-	BadgeList::iterator it = mvBadges.begin();
-	for(it = mvBadges.begin(); it !=mvBadges.end(); it++)	{
-		delete(*it);
-	}
+	mInsFlag = false;
+	delete(mSingleton);
+}
 
+//======================================================================================================================
 
-    mInsFlag = false;
-    delete(mSingleton);
+void CharSheetManager::handleDispatchMessage(uint32 opcode,Message* message,DispatchClient* client)
+{
+	CSCommandMap::iterator it = mCommandMap.find(opcode);
 
+	if(it != mCommandMap.end())
+		(this->*((*it).second))(message,client);
+	else
+		gLogger->log(LogManager::DEBUG,"CharSheetManager: Unhandled DispatchMsg %u",opcode);
 }
 
 //=========================================================================================
 
-void CharSheetManager::handleDatabaseJobComplete(void* ref, swganh::database::DatabaseResult* result)
+void CharSheetManager::handleDatabaseJobComplete(void* ref, DatabaseResult* result)
 {
-    CSAsyncContainer* asyncContainer = reinterpret_cast<CSAsyncContainer*>(ref);
+	CSAsyncContainer* asyncContainer = reinterpret_cast<CSAsyncContainer*>(ref);
 
-    switch(asyncContainer->mQuery)
-    {
-    case CharSheetQuery_Factions:
-    {
+	switch(asyncContainer->mQuery)
+	{
+		case CharSheetQuery_Factions:
+		{
 
-        BString name;
-        swganh::database::DataBinding* binding = mDatabase->createDataBinding(1);
-        binding->addField(swganh::database::DFT_bstring,0,255,1);
+			string name;
+			DataBinding* binding = mDatabase->CreateDataBinding(1);
+			binding->addField(DFT_bstring,0,255,1);
 
-        uint64 count = result->getRowCount();
-        mvFactions.reserve((uint32)count);
-        for(uint64 i = 0; i < count; i++)
-        {
-            result->getNextRow(binding,&name);
-            mvFactions.push_back(BString(name.getAnsi()));
-        }
+			uint64 count = result->getRowCount();
+			mvFactions.reserve((uint32)count);
+			for(uint64 i = 0;i < count;i++)
+			{
+				result->GetNextRow(binding,&name);
+				mvFactions.push_back(BString(name.getAnsi()));
+			}
 
-        //LOG(info) << "Loaded " << count << " factions";
+			if(result->getRowCount())
+				gLogger->log(LogManager::NOTICE,"Loaded factions.");
 
-        mDatabase->destroyDataBinding(binding);
+			mDatabase->DestroyDataBinding(binding);
 
-        // load badge categories
-        mDatabase->executeSqlAsync(this,new(mDBAsyncPool.malloc()) CSAsyncContainer(CharSheetQuery_BadgeCategories),"SELECT * FROM %s.badge_categories ORDER BY id",mDatabase->galaxy());
-        
-    }
-    break;
+			gLogger->log(LogManager::DEBUG,"Finished Loading Factions.");
+			// load badge categories
+			gLogger->log(LogManager::NOTICE,"Loading Badge Categories.");
+			mDatabase->ExecuteSqlAsync(this,new(mDBAsyncPool.malloc()) CSAsyncContainer(CharSheetQuery_BadgeCategories),"SELECT * FROM badge_categories ORDER BY id");
+		}
+		break;
 
-    case CharSheetQuery_BadgeCategories:
-    {
-        BString name;
-        swganh::database::DataBinding* binding = mDatabase->createDataBinding(1);
-        binding->addField(swganh::database::DFT_bstring,0,255,1);
+		case CharSheetQuery_BadgeCategories:
+		{
+			string name;
+			DataBinding* binding = mDatabase->CreateDataBinding(1);
+			binding->addField(DFT_bstring,0,255,1);
 
-        uint64 count = result->getRowCount();
-        mvBadgeCategories.reserve((uint32)count);
-        for(uint64 i = 0; i < count; i++)
-        {
-            result->getNextRow(binding,&name);
-            mvBadgeCategories.push_back(BString(name.getAnsi()));
-        }
+			uint64 count = result->getRowCount();
+			mvBadgeCategories.reserve((uint32)count);
+			for(uint64 i = 0;i < count;i++)
+			{
+				result->GetNextRow(binding,&name);
+				mvBadgeCategories.push_back(BString(name.getAnsi()));
+			}
 
-        //LOG(info) << "Loaded " << count << " badge categories";
+			mDatabase->DestroyDataBinding(binding);
 
-        mDatabase->destroyDataBinding(binding);
+			//gLogger->log(LogManager::DEBUG,"Finished Loading Badge Categories.");
+			//gLogger->log(LogManager::NOTICE,"Loading Badges.");
+			mDatabase->ExecuteSqlAsync(this,new(mDBAsyncPool.malloc()) CSAsyncContainer(CharSheetQuery_Badges),"SELECT * FROM badges ORDER BY id");
+		}
+		break;
 
-        //gLogger->log(LogManager::DEBUG,"Finished Loading Badge Categories.");
-        //gLogger->log(LogManager::NOTICE,"Loading Badges.");
-        mDatabase->executeSqlAsync(this,new(mDBAsyncPool.malloc()) CSAsyncContainer(CharSheetQuery_Badges),"SELECT * FROM %s.badges ORDER BY id",mDatabase->galaxy());
-        
-    }
-    break;
+		case CharSheetQuery_Badges:
+		{
+			Badge* badge;
 
-    case CharSheetQuery_Badges:
-    {
-        Badge* badge;
+			DataBinding* binding = mDatabase->CreateDataBinding(4);
+			binding->addField(DFT_uint32,offsetof(Badge,mId),4,0);
+			binding->addField(DFT_bstring,offsetof(Badge,mName),255,1);
+			binding->addField(DFT_uint32,offsetof(Badge,mSoundId),4,2);
+			binding->addField(DFT_uint8,offsetof(Badge,mCategory),1,3);
 
-        swganh::database::DataBinding* binding = mDatabase->createDataBinding(4);
-        binding->addField(swganh::database::DFT_uint32,offsetof(Badge,mId),4,0);
-        binding->addField(swganh::database::DFT_bstring,offsetof(Badge,mName),255,1);
-        binding->addField(swganh::database::DFT_uint32,offsetof(Badge,mSoundId),4,2);
-        binding->addField(swganh::database::DFT_uint8,offsetof(Badge,mCategory),1,3);
+			uint64 count = result->getRowCount();
+			mvBadges.reserve((uint32)count);
+			for(uint64 i = 0;i < count;i++)
+			{
+				badge = new Badge();
+				result->GetNextRow(binding,badge);
+				mvBadges.push_back(badge);
+			}
 
-        uint64 count = result->getRowCount();
-        mvBadges.reserve((uint32)count);
-        for(uint64 i = 0; i < count; i++)
-        {
-            badge = new Badge();
-            result->getNextRow(binding,badge);
-            mvBadges.push_back(badge);
-        }
+			mDatabase->DestroyDataBinding(binding);	
+			//gLogger->log(LogManager::DEBUG,"Finished Loading Badges.");
+		}
+		break;
 
-        //LOG(info) << "Loaded " << count << " badges";
+		default:break;
+	}
 
-        mDatabase->destroyDataBinding(binding);
-        //gLogger->log(LogManager::DEBUG,"Finished Loading Badges.");
-    }
-    break;
-
-    default:
-        break;
-    }
-
-    mDBAsyncPool.free(asyncContainer);
+	mDBAsyncPool.free(asyncContainer);
 }
 
 //=========================================================================================
 
 void CharSheetManager::_processFactionRequest(Message* message,DispatchClient* client)
 {
-    PlayerObject* player = gWorldManager->getPlayerByAccId(client->getAccountId());
+	PlayerObject* player = gWorldManager->getPlayerByAccId(client->getAccountId());
 
-    if(player == NULL)    {
-        DLOG(info) << "CharSheetManager::_processFactionRequest: could not find player " << client->getAccountId();
-        return;
-    }
+	if(player == NULL)
+	{
+		gLogger->log(LogManager::DEBUG,"CharSheetManager::_processFactionRequest: could not find player %u",client->getAccountId());
+		return;
+	}
 
-    gMessageFactory->StartMessage();
-    gMessageFactory->addUint32(opFactionResponseMessage);
-    gMessageFactory->addString(player->GetCreature()->getFaction());
-    gMessageFactory->addUint32(player->GetCreature()->getFactionPointsByFactionId(2));
-    gMessageFactory->addUint32(player->GetCreature()->getFactionPointsByFactionId(3));
-    gMessageFactory->addUint32(0);
+	gMessageFactory->StartMessage();
+	gMessageFactory->addUint32(opFactionResponseMessage);
+	gMessageFactory->addString(player->getFaction());
+	gMessageFactory->addUint32(player->getFactionPointsByFactionId(2));
+	gMessageFactory->addUint32(player->getFactionPointsByFactionId(3));
+	gMessageFactory->addUint32(0);
 
-    FactionList* factions = player->GetCreature()->getFactionList();
+	FactionList* factions = player->getFactionList();
 
-    gMessageFactory->addUint32(factions->size());
+	gMessageFactory->addUint32(factions->size());
 
-    FactionList::iterator it = factions->begin();
+	FactionList::iterator it = factions->begin();
 
-    while(it != factions->end())
-    {
-        gMessageFactory->addString(mvFactions[(*it).first - 1]);
-        ++it;
-    }
+	while(it != factions->end())
+	{
+		gMessageFactory->addString(mvFactions[(*it).first - 1]);
+		++it;
+	}
 
-    gMessageFactory->addUint32(factions->size());
+	gMessageFactory->addUint32(factions->size());
 
-    it = factions->begin();
+	it = factions->begin();
 
-    while(it != factions->end())
-    {
-        gMessageFactory->addFloat((float)((*it).second));
-        ++it;
-    }
+	while(it != factions->end())
+	{
+		gMessageFactory->addFloat((float)((*it).second));
+		++it;
+	}
 
-    Message* newMessage = gMessageFactory->EndMessage();
+	Message* newMessage = gMessageFactory->EndMessage();
 
-    client->SendChannelA(newMessage,client->getAccountId(),CR_Client,6);
+	client->SendChannelA(newMessage,client->getAccountId(),CR_Client,6);
 }
 
 //=========================================================================================
 
 void CharSheetManager::_processPlayerMoneyRequest(Message* message,DispatchClient* client)
 {
-    PlayerObject* player = gWorldManager->getPlayerByAccId(client->getAccountId());
+	PlayerObject* player = gWorldManager->getPlayerByAccId(client->getAccountId());
 
-    if(player == NULL)    {
-        DLOG(info) << "CharSheetManager::_processPlayerMoneyRequest: could not find player " << client->getAccountId();
-        return;
-    }
+	if(player == NULL)
+	{
+		gLogger->log(LogManager::DEBUG,"CharSheetManager::_processPlayerMoneyRequest: could not find player %u",client->getAccountId());
+		return;
+	}
 
-	auto equip_service = gWorldManager->getKernel()->GetServiceManager()->GetService<swganh::equipment::EquipmentService>("EquipmentService");
-	auto inventory	= dynamic_cast<Inventory*>(equip_service->GetEquippedObject(player->GetCreature(), "inventory"));
-	auto bank		= dynamic_cast<Bank*>(equip_service->GetEquippedObject(player->GetCreature(), "bank"));
+	gMessageFactory->StartMessage();
+	gMessageFactory->addUint32(opPlayerMoneyResponse);
+	gMessageFactory->addUint32(dynamic_cast<Bank*>(player->getEquipManager()->getEquippedObject(CreatureEquipSlot_Bank))->getCredits());
+	gMessageFactory->addUint32(dynamic_cast<Inventory*>(player->getEquipManager()->getEquippedObject(CreatureEquipSlot_Inventory))->getCredits());
 
-    gMessageFactory->StartMessage();
-    gMessageFactory->addUint32(opPlayerMoneyResponse);
-    gMessageFactory->addUint32(bank->getCredits());
-    gMessageFactory->addUint32(inventory->getCredits());
+	Message* newMessage = gMessageFactory->EndMessage();
 
-    Message* newMessage = gMessageFactory->EndMessage();
-
-    client->SendChannelA(newMessage,client->getAccountId(),CR_Client,3);
+	client->SendChannelA(newMessage,client->getAccountId(),CR_Client,3);
 }
 
 //=========================================================================================

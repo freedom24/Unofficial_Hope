@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -40,18 +40,16 @@ class Category
 {
 public:
 
-    Category() {}
-    ~Category() {}
+	Category(){}
+	~Category(){}
 
-    SubCategoryList* GetSubCategories() {
-        return &mSubCategories;
-    }
+	SubCategoryList* GetSubCategories() { return &mSubCategories; }
 
-    uint32 mId;
-    BString mName;
+	uint32 mId;
+	string mName;
 
 private:
-    SubCategoryList mSubCategories;
+	SubCategoryList mSubCategories;
 
 };
 
@@ -61,11 +59,11 @@ class SubCategory
 {
 public:
 
-    SubCategory() {}
-    ~SubCategory() {}
+	SubCategory(){}
+	~SubCategory(){}
 
-    uint32			mId;
-    BString			mName;
+	uint32			mId;
+	string			mName;
 };
 
 //======================================================================================================================
@@ -74,12 +72,12 @@ class Article
 {
 public:
 
-    Article() {}
-    ~Article() {}
+	Article(){}
+	~Article(){}
 
-    uint32			mId;
-    BString			mTitle;
-    BString			mBody;
+	uint32			mId;
+	string			mTitle;
+	string			mBody;
 };
 
 //======================================================================================================================
@@ -88,22 +86,22 @@ class Ticket
 {
 public:
 
-    Ticket() {}
-    ~Ticket() {}
+	Ticket(){}
+	~Ticket(){}
 
-    uint32		mId;
-    BString		mPlayer;
-    uint32		mCategoryId;
-    uint32		mSubCategoryId;
-    BString		mComment;
-    BString		mInfo;
-    BString		mHarrasingUser;
-    BString		mLanguage;
-    uint8		mBugReport;
-    uint8		mClosed;
-    uint8		mActivity;
-    uint64		mLastModified;
-    CommentList mCommentList;
+	uint32		mId;
+	string		mPlayer;
+	uint32		mCategoryId;
+	uint32		mSubCategoryId;
+	string		mComment;
+	string		mInfo;
+	string		mHarrasingUser;
+	string		mLanguage;
+	uint8		mBugReport;
+	uint8		mClosed;
+	uint8		mActivity;
+	uint64		mLastModified;
+	CommentList mCommentList;
 };
 
 //======================================================================================================================
@@ -111,13 +109,13 @@ public:
 class Comment
 {
 public:
-    Comment() {}
-    ~Comment() {}
+	Comment(){}
+	~Comment(){}
 
-    BString	mText;
-    uint32	mId;
-    uint32	mTicketId;
-    BString  mAuthor;
+	string	mText;
+	uint32	mId;
+	uint32	mTicketId;
+	string  mAuthor;
 };
 
 #endif

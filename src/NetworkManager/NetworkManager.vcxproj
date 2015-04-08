@@ -11,13 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="CompCryptor.cpp" />
-    <ClCompile Include="DispatchClient.cpp" />
-    <ClCompile Include="MessageDispatch.cpp" />
-    <ClCompile Include="MessageFactory.cpp" />
+    <ClCompile Include="NetConfig.cpp" />
     <ClCompile Include="NetworkClient.cpp" />
     <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="PacketFactory.cpp" />
@@ -29,15 +24,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CompCryptor.h" />
-    <ClInclude Include="declspec.h" />
-    <ClInclude Include="DispatchClient.h" />
-    <ClInclude Include="Message.h" />
-    <ClInclude Include="MessageDispatch.h" />
-    <ClInclude Include="MessageFactory.h" />
-    <ClInclude Include="MessageOpcodes.h" />
+    <ClInclude Include="NetConfig.h" />
     <ClInclude Include="NetworkCallback.h" />
     <ClInclude Include="NetworkClient.h" />
-    <ClInclude Include="NetworkConfig.h" />
     <ClInclude Include="NetworkManager.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketFactory.h" />
@@ -94,7 +83,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;BOOST_HAS_STDINT_H;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)deps\zlib;$(SolutionDir)src</AdditionalIncludeDirectories>
     </ClCompile>
@@ -110,9 +99,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;BOOST_HAS_STDINT_H;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)deps\zlib;$(SolutionDir)src</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

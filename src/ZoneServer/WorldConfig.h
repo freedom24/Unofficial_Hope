@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,30 +28,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_ZONESERVER_WORLDCONFIG_H
 #define ANH_ZONESERVER_WORLDCONFIG_H
 
-#include <map>
-#include <boost/lexical_cast.hpp>
-
-#include "DatabaseManager/DatabaseCallback.h"
-
-#include "Utils/bstring.h"
 #include "Utils/typedefs.h"
-#include "anh/crc.h"
+#include "DatabaseManager/DatabaseCallback.h"
+#include <map>
+#include "LogManager/LogManager.h"
+#include <boost/lexical_cast.hpp>
 
 #define	gWorldConfig	WorldConfig::getSingletonPtr()
 
 
 //======================================================================================================================
-namespace swganh	{
-namespace app
-{
-class SwganhKernel;
-}
-namespace database	{
+
 class Database;
-class DatabaseResult;
 class DatabaseCallback;
-}
-}
+class DatabaseResult;
 
 //======================================================================================================================
 
@@ -59,210 +49,171 @@ typedef std::map<uint32,std::string>	 ConfigurationMap;
 
 class Configuration_QueryContainer
 {
-public:
+	public:
 
-    Configuration_QueryContainer() {}
+		Configuration_QueryContainer(){}
 
-    int8		Key[128];
-	int8		Value[128];
-    //std::string	Value;
+		string	mKey;
+		string	mValue;
 };
 
-class WorldConfig : public swganh::database::DatabaseCallback
+class WorldConfig : public DatabaseCallback
 {
-public:
+	public:
 
-    ~WorldConfig();
+		~WorldConfig();
 
-    static inline void deleteManager(void)
-    {
-        if (mSingleton)
-        {
-            delete mSingleton;
-            mSingleton = 0;
-        }
-    }
+		static inline void deleteManager(void)    
+		{ 
+			if (mSingleton)
+			{
+				delete mSingleton;
+				mSingleton = 0;
+			}
+		}
 
-    static WorldConfig*	Init(uint32 zoneId,swganh::app::SwganhKernel* kernel, std::string zoneName);
-    static WorldConfig*	getSingletonPtr() {
-        return mSingleton;
-    }
+		static WorldConfig*	Init(uint32 zoneId,Database* database, string zoneName);
+		static WorldConfig*	getSingletonPtr() { return mSingleton; }
 
-	void			setUp();
+		virtual void		handleDatabaseJobComplete(void* ref,DatabaseResult* result);
+		void				buildAttributeMap(DatabaseResult* result);
 
-	virtual void	handleDatabaseJobComplete(void* ref,swganh::database::DatabaseResult* result);
-    void			buildAttributeMap(swganh::database::DatabaseResult* result);
-
-    // configuration attributes
-    ConfigurationMap*			getConfigurationMap() {
-        return &mConfigurationMap;
-    }
-    template<typename T> T		getConfiguration(std::string key, T fallback) const;
-    template<typename T> T		getConfiguration(std::string key) const;
-    template<typename T> T		getConfiguration(uint32 keyCrc) const;
-    void						setConfiguration(std::string key,std::string value);
-    void						addConfiguration(std::string key,std::string value);
-    bool						hasConfiguration(std::string key) const;
-    void						removeConfiguration(std::string key);
+		// configuration attributes
+		ConfigurationMap*			getConfigurationMap(){ return &mConfigurationMap; }
+		template<typename T> T		getConfiguration(string key, T fallback) const;
+		template<typename T> T		getConfiguration(string key) const;
+		template<typename T> T		getConfiguration(uint32 keyCrc) const;
+		void						setConfiguration(string key,std::string value);
+		void						addConfiguration(string key,std::string value);
+		bool						hasConfiguration(string key) const;
+		void						removeConfiguration(string key);
 
 
-    uint32				getGroupMissionUpdateTime() {
-        return mGroupMissionUpdateTime;
-    }
+		uint32				getGroupMissionUpdateTime(){return mGroupMissionUpdateTime;}
 
-    uint16				getPlayerContainerDepth() {
-        return mContainerDepth;
-    }
+		uint16				getPlayerContainerDepth(){ return mContainerDepth; }
 
-    uint16				getPlayerViewingRange() {
-        return mPlayerViewingRange;
-    }
-    uint16				getPlayerChatRange() {
-        return mPlayerChatRange;
-    }
+		uint16				getPlayerViewingRange(){ return mPlayerViewingRange; }
+		uint16				getPlayerChatRange(){ return mPlayerChatRange; }
+		
+		uint32				getServerTimeInterval(){ return mServerTimeInterval; }
+		uint32				getServerTimeSpeed(){ return mServerTimeSpeed; }
 
-    uint32				getServerTimeInterval() {
-        return mServerTimeInterval;
-    }
-    uint32				getServerTimeSpeed() {
-        return mServerTimeSpeed;
-    }
+		uint8				getPlayerMaxIncaps(){ return mPlayerMaxIncaps; }
+		uint32				getBaseIncapTime(){ return mPlayerBaseIncapTime; }
+		uint32				getIncapResetTime(){ return mIncapResetTime; }
+			
+		float				mHealthRegenDivider,mActionRegenDivider,mMindRegenDivider;
+		bool				isTutorial() { return (mTutorialEnabled && (mZoneId == 41)); }
+		void				enableTutorial() { mTutorialEnabled = true; }
+		void				disableTutorial() { mTutorialEnabled = false; }
+		void				enableInstance() { mInstanceEnabled = true; }
 
-    uint8				getPlayerMaxIncaps() {
-        return mPlayerMaxIncaps;
-    }
-    uint32				getBaseIncapTime() {
-        return mPlayerBaseIncapTime;
-    }
-    uint32				getIncapResetTime() {
-        return mIncapResetTime;
-    }
+		void				ResetViewingRange(){mPlayerViewingRange = mPlayerViewingRangeMax;}
+		void				setViewingRange(uint16 range){mPlayerViewingRange = range;}
 
-    float				mHealthRegenDivider,mActionRegenDivider,mMindRegenDivider;
-    bool				isTutorial() {
-        return (mTutorialEnabled && (mZoneId == 41));
-    }
-    void				enableTutorial() {
-        mTutorialEnabled = true;
-    }
-    void				disableTutorial() {
-        mTutorialEnabled = false;
-    }
-    void				enableInstance() {
-        mInstanceEnabled = true;
-    }
+		// For now, the Tutorial is the only instance we have, but we need to be able to expand on that consept.
+		bool				isInstance();
 
-    void				ResetViewingRange() {
-        mPlayerViewingRange = mPlayerViewingRangeMax;
-    }
-    void				setViewingRange(uint16 range) {
-        mPlayerViewingRange = range;
-    }
+	private:
 
-    // For now, the Tutorial is the only instance we have, but we need to be able to expand on that concept.
-    bool				isInstance();
+		WorldConfig(uint32 zoneId,Database* database, string zoneName);
 
-private:
+		ConfigurationMap		mConfigurationMap;
+		static WorldConfig*		mSingleton;
+		bool					mLoadComplete;
 
-    WorldConfig(uint32 zoneId,swganh::app::SwganhKernel* kernel, std::string zoneName);
+		Database*				mDatabase;
+		uint32					mZoneId;
+		string					mZoneName;
 
-    ConfigurationMap		mConfigurationMap;
-    static WorldConfig*		mSingleton;
-    bool					mLoadComplete;
+		//
+		// configuration variables
+		//
+		// Player Viewing Range, the default range used for spatial queries
+		uint16				mContainerDepth;
 
-	swganh::app::SwganhKernel* 	mKernel;
-    //swganh::database::Database*				mDatabase;
-    uint32					mZoneId;
-    std::string				mZoneName;
+		// Player Viewing Range, the default range used for spatial queries
+		uint16				mPlayerViewingRange;
+		uint16				mPlayerViewingRangeMax;
 
-    //
-    // configuration variables
-    //
-    // Player Viewing Range, the default range used for spatial queries
-    uint16				mContainerDepth;
+		// Player chat range
+		uint16				mPlayerChatRange;
 
-    // Player Viewing Range, the default range used for spatial queries
-    uint16				mPlayerViewingRange;
-    uint16				mPlayerViewingRangeMax;
+		// Logged Timeout, time until a disconnected player gets removed from the world
+		uint32				mLoggedTime;
 
-    // Player chat range
-    uint16				mPlayerChatRange;
+		// Server Time Update Frequency, how often time updates are send to players
+		uint32				mServerTimeInterval;
 
-    // Logged Timeout, time until a disconnected player gets removed from the world
-    uint32				mLoggedTime;
+		// Server Time Speed, add to the timecounter, adjusts how fast time goes by
+		uint32				mServerTimeSpeed;
 
-    // Server Time Update Frequency, how often time updates are send to players
-    uint32				mServerTimeInterval;
+		// Server Weather Update Frequency, how often weather updates happen
+		uint32				mWeatherUpdateInterval;
 
-    // Server Time Speed, add to the timecounter, adjusts how fast time goes by
-    uint32				mServerTimeSpeed;
+		// Maximum Weather type, max id for the randomizer to set a weathertype, differs for each planet
+		uint8				mMaxWeatherId;
 
-    // Server Weather Update Frequency, how often weather updates happen
-    uint32				mWeatherUpdateInterval;
+		// incapacitation
+		uint8				mPlayerMaxIncaps;
+		uint32				mPlayerBaseIncapTime;
+		uint32				mIncapResetTime;
 
-    // Maximum Weather type, max id for the randomizer to set a weathertype, differs for each planet
-    uint8				mMaxWeatherId;
+		// Test
+		bool				mTutorialEnabled;
+		bool				mInstanceEnabled;
 
-    // incapacitation
-    uint8				mPlayerMaxIncaps;
-    uint32				mPlayerBaseIncapTime;
-    uint32				mIncapResetTime;
+		//Bazaar
+		uint32				mMaxBazaarPrice;
+		uint32				mMaxBazaarListing;
 
-    // Test
-    bool				mTutorialEnabled;
-    bool				mInstanceEnabled;
-
-
-    //Bazaar
-    uint32				mMaxBazaarPrice;
-    uint32				mMaxBazaarListing;
-
-    // GroupMissionUpdateTime determines how often we update the waypoints for our group
-    uint32				mGroupMissionUpdateTime;
+		// GroupMissionUpdateTime determines how often we update the waypoints for our group
+		uint32				mGroupMissionUpdateTime;
 };
 
 //=============================================================================
 
 template<typename T>
-T	WorldConfig::getConfiguration(std::string key, T fallback) const
+T	WorldConfig::getConfiguration(string key, T fallback) const
 {
-    ConfigurationMap::const_iterator it = mConfigurationMap.find(swganh::memcrc(key));
+	ConfigurationMap::const_iterator it = mConfigurationMap.find(key.getCrc());
 
-    if(it != mConfigurationMap.end())
-    {
-        try
-        {
-            return(boost::lexical_cast<T>((*it).second));
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            
-        }
-    }
-    //else
-    //	gLogger->logErrorF("configuration","WorldConfig::getConfiguration: could not find %s - returning fallback",key.getAnsi());
+	if(it != mConfigurationMap.end())
+	{
+		try
+		{
+			return(boost::lexical_cast<T>((*it).second));
+		}
+		catch(boost::bad_lexical_cast &)
+		{
+			gLogger->log(LogManager::NOTICE,"WorldConfig::getConfiguration: cast failed (%s)",key.getAnsi());
+		}
+	}
+	//else
+	//	gLogger->logErrorF("configuration","WorldConfig::getConfiguration: could not find %s - returning fallback",key.getAnsi());
 
-    return(T(fallback));
+	return(T(fallback));
 }
 
 template<typename T>
-T	WorldConfig::getConfiguration(std::string key) const
+T	WorldConfig::getConfiguration(string key) const
 {
-    ConfigurationMap::const_iterator it = mConfigurationMap.find(swganh::memcrc(key));
+	ConfigurationMap::const_iterator it = mConfigurationMap.find(key.getCrc());
 
-    if(it != mConfigurationMap.end())
-    {
-        try
-        {
-            return(boost::lexical_cast<T>((*it).second));
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            
-        }
-    }
+	if(it != mConfigurationMap.end())
+	{
+		try
+		{
+			return(boost::lexical_cast<T>((*it).second));
+		}
+		catch(boost::bad_lexical_cast &)
+		{
+			gLogger->log(LogManager::INFORMATION,"WorldConfig::getConfiguration: cast failed ('%s')",key.getAnsi());
+		}
+	}
 
-    return(T());
+	return(T());
 }
 
 //=============================================================================
@@ -270,21 +221,21 @@ T	WorldConfig::getConfiguration(std::string key) const
 template<typename T>
 T	WorldConfig::getConfiguration(uint32 keyCrc) const
 {
-    ConfigurationMap::iterator it = mConfigurationMap.find(keyCrc);
+	ConfigurationMap::iterator it = mConfigurationMap.find(keyCrc);
 
-    if(it != mConfigurationMap.end())
-    {
-        try
-        {
-            return(boost::lexical_cast<T>((*it).second));
-        }
-        catch(boost::bad_lexical_cast &)
-        {
-            
-        }
-    }
+	if(it != mConfigurationMap.end())
+	{
+		try
+		{
+			return(boost::lexical_cast<T>((*it).second));
+		}
+		catch(boost::bad_lexical_cast &)
+		{
+			gLogger->log(LogManager::INFORMATION,"Object::getAttribute: cast failed ('%s')",keyCrc);
+		}
+	}
 
-    return(T());
+	return(T());
 }
 
 

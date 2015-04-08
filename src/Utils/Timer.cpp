@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -31,15 +31,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //==============================================================================================================================
 
 Timer::Timer(uint32 id,TimerCallback* callback,uint64 interval, void* container)
-    : mContainer(container)
-    , mCallback(callback)
-    , mId(id)
-    , mInterval(interval)
+: mContainer(container)
+, mCallback(callback)
+, mId(id)
+, mInterval(interval)
 {
-    if(mInterval < 100)
-        mInterval = 100;
+	if(mInterval < 100)
+		mInterval = 100;
 
-    mLastTick = Anh_Utils::Clock::getSingleton()->getLocalTime();
+	mLastTick = Anh_Utils::Clock::getSingleton()->getLocalTime();
 
     boost::thread t(&Timer::Run, this);
     mThread = boost::move(t);
@@ -57,20 +57,20 @@ Timer::~Timer()
 
 void Timer::Run()
 {
-    uint64 currentTick;
+	uint64 currentTick;
 
-    while(true)
-    {
-        currentTick = Anh_Utils::Clock::getSingleton()->getLocalTime();
+	while(true)
+	{
+		currentTick = Anh_Utils::Clock::getSingleton()->getLocalTime();
 
-        if(currentTick - mLastTick >= mInterval)
-        {
-            mCallback->handleTimer(mId,mContainer);
-            mLastTick = currentTick;
-        }
+		if(currentTick - mLastTick >= mInterval)
+		{
+			mCallback->handleTimer(mId,mContainer);
+			mLastTick = currentTick;
+		}
 
         boost::this_thread::sleep(boost::posix_time::milliseconds(10));
-    }
+	}
 }
 
 //==============================================================================================================================

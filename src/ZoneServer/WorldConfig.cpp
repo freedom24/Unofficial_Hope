@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -25,20 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "ZoneServer/WorldConfig.h"
-
-#include "anh/logger.h"
-
+#include "WorldConfig.h"
+#include "LogManager/LogManager.h"
 #include "DatabaseManager/Database.h"
-//#include "DatabaseManager/"
 #include "DatabaseManager/DatabaseResult.h"
 #include "DatabaseManager/DataBinding.h"
-#include <cppconn/resultset.h>
-
-#include "anh/plugin/bindings.h"
-#include "anh/plugin/plugin_manager.h"
-
-#include "anh/app/swganh_kernel.h"
+#include "ConfigManager/ConfigManager.h"
 
 //======================================================================================================================
 
@@ -46,63 +38,35 @@ WorldConfig*	WorldConfig::mSingleton = NULL;
 
 //======================================================================================================================
 
-WorldConfig::WorldConfig(uint32 zoneId,swganh::app::SwganhKernel* kernel, std::string zoneName) :
-    mKernel(kernel),
-    mZoneId(zoneId),
-    mTutorialEnabled(true),
-    mInstanceEnabled(false),
-	mLoadComplete(false),
-	mZoneName(zoneName)
+WorldConfig::WorldConfig(uint32 zoneId,Database* database, string zoneName) :
+mDatabase(database),
+mZoneId(zoneId),
+mTutorialEnabled(true),
+mInstanceEnabled(false)
 {
-	mKernel->GetDatabase()->executeSqlAsync(this,NULL,"SELECT csa.attribute,cs.value"
-                               " FROM %s.config_server cs"
-                               " INNER JOIN %s.config_server_attributes csa ON (csa.id = cs.config_attributes_id)"
-                               " WHERE cs.server_name like 'all' ",
-                               mKernel->GetDatabase()->galaxy(),mKernel->GetDatabase()->galaxy());
+	mZoneName = zoneName;
+	mLoadComplete = false;
 
-	LOG (error) << "started query";
+	//load globals 
+	mDatabase->ExecuteSqlAsync(this,NULL,"SELECT csa.attribute,cs.value"
+										 " FROM config_server cs"
+										 " INNER JOIN config_server_attributes csa ON (csa.id = cs.config_attributes_id)"
+										 " WHERE cs.server_name like 'all' ");
+
 }
 
-
-void WorldConfig::setUp()
-{
-	//load globals
-/*
-	std::stringstream s;
-	s	<< "SELECT csa.attribute,cs.value FROM " << mKernel->GetDatabase()->galaxy() << ".config_server cs INNER JOIN "
-		<< mKernel->GetDatabase()->galaxy() << ".config_server_attributes csa ON (csa.id = cs.config_attributes_id)"
-		<< " WHERE cs.server_name like 'all' ";
 	
-	mKernel->GetDatabase()->executeAsyncProcedure(s.str(), [=] (swganh::database::DatabaseResult* result)	{
 
-		handleDatabaseResult(result);
-
-		//now load the zones specifics
-        std::stringstream s;
-		s	<< "SELECT csa.attribute,cs.value FROM " << mKernel->GetDatabase()->galaxy() << ".config_server cs INNER JOIN " << mKernel->GetDatabase()->galaxy() 
-			<< ".config_server_attributes csa ON (csa.id = cs.config_attributes_id) WHERE cs.server_name like '" << mZoneName << "'";
-        
-		mKernel->GetDatabase()->executeAsyncProcedure(s.str(), [=] (swganh::database::DatabaseResult* dresult)	{
-
-			mSingleton->handleDatabaseResult(dresult);
-
-		});
-        
-    
-
-	});
-	*/
-}
 
 //======================================================================================================================
 
-WorldConfig* WorldConfig::Init(uint32 zoneId,swganh::app::SwganhKernel* kernel, std::string zoneName)
+WorldConfig* WorldConfig::Init(uint32 zoneId,Database* database, string zoneName)
 {
-    if(!mSingleton)
-    {
-        mSingleton = new WorldConfig(zoneId, kernel, zoneName);
-    }
-    
+	if(!mSingleton)
+	{
+		mSingleton = new WorldConfig(zoneId,database, zoneName);
+	}
+	
 	return mSingleton;
 }
 
@@ -114,212 +78,198 @@ WorldConfig::~WorldConfig()
 
 //======================================================================================================================
 
-void	WorldConfig::handleDatabaseJobComplete(void* ref,swganh::database::DatabaseResult* result)
+void WorldConfig::handleDatabaseJobComplete(void* ref,DatabaseResult* result)
 {
-	LOG (error) << "build attribute map";
-    buildAttributeMap(result);
+	
+	buildAttributeMap(result);
 
-    // verify loaded settings, unless we cant do table level checks with crap mysql
-
-    // Container Depth
-    mContainerDepth= getConfiguration<uint16>("Player_ContainerDepth",(uint16)5);
-    if(mContainerDepth > 255)
-        mContainerDepth= 255;
-    else if(mContainerDepth< 3)
-        mContainerDepth= 3;
-
-
-
-    // Message of the day
-
-    // Player viewing range
-    mPlayerViewingRange = getConfiguration<uint16>("Zone_Player_ViewingRange",(uint16)128);
-    if(mPlayerViewingRange > 256)
-        mPlayerViewingRange = 256;
-    else if(mPlayerViewingRange < 32)
-        mPlayerViewingRange = 32;
-
-    //save our initial value to reset after scaling down due to load
-    mPlayerViewingRangeMax = mPlayerViewingRange;
-
-    // Player chat range
-    mPlayerChatRange = getConfiguration<uint16>("Zone_Player_ChatRange",(uint16)128);
-
-    if(mPlayerChatRange > 256)
-        mPlayerChatRange = 256;
-    else if(mPlayerChatRange < 32)
-        mPlayerChatRange = 32;
+	// verify loaded settings, unless we cant do table level checks with crap mysql
+	
+	// Container Depth
+	mContainerDepth= gWorldConfig->getConfiguration<uint16>("Player_ContainerDepth",(uint16)5);
+	if(mContainerDepth > 256)
+		mContainerDepth= 256;
+	else if(mContainerDepth< 3)
+		mContainerDepth= 3;
 
 
-    // Server Time Update Frequency
+	
+	// Message of the day
 
-    mServerTimeInterval = getConfiguration<uint32>("Server_Time_Interval",(uint32)30);
+	// Player viewing range
+	mPlayerViewingRange = gWorldConfig->getConfiguration<uint16>("Zone_Player_ViewingRange",(uint16)128);
+	if(mPlayerViewingRange > 256)
+		mPlayerViewingRange = 256;
+	else if(mPlayerViewingRange < 32)
+		mPlayerViewingRange = 32;
 
-    if(mServerTimeInterval < 10)
-        mServerTimeInterval = 10;
-    else if(mServerTimeInterval > 300)
-        mServerTimeInterval = 300;
+	//save our initial value to reset after scaling down due to load
+	mPlayerViewingRangeMax = mPlayerViewingRange;
 
-    // Server Time Speed
+	// Player chat range
+	mPlayerChatRange = gWorldConfig->getConfiguration<uint16>("Zone_Player_ChatRange",(uint16)128);
+	
+	if(mPlayerChatRange > 256)
+		mPlayerChatRange = 256;
+	else if(mPlayerChatRange < 32)
+		mPlayerChatRange = 32;
 
-    mServerTimeSpeed = getConfiguration<uint32>("Server_Time_Speed",(uint32)0);
 
-    if(mServerTimeSpeed < 0)
-        mServerTimeSpeed = 0;
-    else if(mServerTimeSpeed > 5000)
-        mServerTimeSpeed = 5000;
+	// Server Time Update Frequency
+	
+	mServerTimeInterval = gWorldConfig->getConfiguration<uint32>("Server_Time_Interval",(uint32)30);
+	
+	if(mServerTimeInterval < 10)
+		mServerTimeInterval = 10;
+	else if(mServerTimeInterval > 300)
+		mServerTimeInterval = 300;
 
-    // ham regen
-    mHealthRegenDivider = static_cast<float>(getConfiguration<float>("Player_Health_RegenDivider",(float)100.0));
+	// Server Time Speed
 
-    if(mHealthRegenDivider < 1.0f || mHealthRegenDivider > 500.0f)
-        mHealthRegenDivider = 100.0f;
+	mServerTimeSpeed = gWorldConfig->getConfiguration<uint32>("Server_Time_Speed",(uint32)0);
 
-    mActionRegenDivider = static_cast<float>(getConfiguration<float>("Player_Action_RegenDivider",100));
-    if(mActionRegenDivider < 1.0f || mActionRegenDivider > 500.0f)
-        mActionRegenDivider = 100.0f;
+	if(mServerTimeSpeed < 0)
+		mServerTimeSpeed = 0;
+	else if(mServerTimeSpeed > 5000)
+		mServerTimeSpeed = 5000;
 
-    mMindRegenDivider = static_cast<float>(getConfiguration<float>("Player_Mind_RegenDivider",100));
-    if(mMindRegenDivider < 1.0f || mMindRegenDivider > 500.0f)
-        mMindRegenDivider = 100.0f;
+	// ham regen
+	mHealthRegenDivider = static_cast<float>(gWorldConfig->getConfiguration<float>("Player_Health_RegenDivider",(float)100.0));
+	
+	if(mHealthRegenDivider < 1.0f || mHealthRegenDivider > 500.0f)
+		mHealthRegenDivider = 100.0f;
 
-    // incapacitation
-    mPlayerMaxIncaps = static_cast<uint8>(getConfiguration<uint32>("Player_Incapacitation",(uint32)3));
+	mActionRegenDivider = static_cast<float>(gWorldConfig->getConfiguration<float>("Player_Action_RegenDivider",100));
+	if(mActionRegenDivider < 1.0f || mActionRegenDivider > 500.0f)
+		mActionRegenDivider = 100.0f;
 
-    if(mPlayerMaxIncaps < 1 || mPlayerMaxIncaps > 50)
-    {
-        mPlayerMaxIncaps = 3;
-    }
+	mMindRegenDivider = static_cast<float>(gWorldConfig->getConfiguration<float>("Player_Mind_RegenDivider",100));
+	if(mMindRegenDivider < 1.0f || mMindRegenDivider > 500.0f)
+		mMindRegenDivider = 100.0f;
 
-    mPlayerBaseIncapTime = getConfiguration<uint32>("Player_Incap_Time",30);
-    if(mPlayerBaseIncapTime < 1 || mPlayerBaseIncapTime > 300)
-    {
-        mPlayerBaseIncapTime = 300;
-    }
+	// incapacitation
+	mPlayerMaxIncaps = static_cast<uint8>(gWorldConfig->getConfiguration<uint32>("Player_Incapacitation",(uint32)3));
+	
+	if(mPlayerMaxIncaps < 1 || mPlayerMaxIncaps > 50)
+	{
+		mPlayerMaxIncaps = 3;
+	}
 
-    mIncapResetTime = getConfiguration<uint32>("Player_Incap_Reset",300);
-    if(mIncapResetTime < 1 || mIncapResetTime > 3600)
-    {
-        mIncapResetTime = 300;
-    }
+	mPlayerBaseIncapTime = gWorldConfig->getConfiguration<uint32>("Player_Incap_Time",30);
+	if(mPlayerBaseIncapTime < 1 || mPlayerBaseIncapTime > 300)
+	{
+		mPlayerBaseIncapTime = 300;
+	}
 
-    mGroupMissionUpdateTime = getConfiguration<uint32>("Group_MissionUpdate_Time",10000);
-    if(mGroupMissionUpdateTime < 1000 || mGroupMissionUpdateTime > 60000)
-    {
-        mGroupMissionUpdateTime = 30000;
-    }
-
+	mIncapResetTime = gWorldConfig->getConfiguration<uint32>("Player_Incap_Reset",300);
+	if(mIncapResetTime < 1 || mIncapResetTime > 3600)
+	{
+		mIncapResetTime = 300;
+	}
+	
 	//now load the zones specifics
-    if(!mLoadComplete)
-    {
-        mLoadComplete = true;
-        int8 sql[255];
-        sprintf(sql,"SELECT csa.attribute,cs.value FROM %s.config_server cs INNER JOIN %s.config_server_attributes csa ON (csa.id = cs.config_attributes_id) WHERE cs.server_name like '%s'",mKernel->GetDatabase()->galaxy(),mKernel->GetDatabase()->galaxy(),mZoneName);
-		mKernel->GetDatabase()->executeSqlAsync(this,NULL,sql);
-        
-    }
+	if(!mLoadComplete)
+	{
+		mLoadComplete = true;
+		int8 sql[255];
+		sprintf(sql,"SELECT csa.attribute,cs.value FROM config_server cs INNER JOIN config_server_attributes csa ON (csa.id = cs.config_attributes_id) WHERE cs.server_name like '%s' ",mZoneName.getAnsi());
+		mDatabase->ExecuteSqlAsync(this,NULL,sql);
+	}
+
+	mGroupMissionUpdateTime = gWorldConfig->getConfiguration<uint32>("Group_MissionUpdate_Time",10000);
+	if(mGroupMissionUpdateTime < 1000 || mGroupMissionUpdateTime > 60000)
+	{
+		mGroupMissionUpdateTime = 30000;
+	}
+
 }
 
 //======================================================================================================================
 
 bool WorldConfig::isInstance()
 {
-    return ( ((mZoneId == 0) && mInstanceEnabled) || isTutorial() );	// Make Corellia instanced
-}
+	return ( ((mZoneId == 0) && mInstanceEnabled) || isTutorial() );	// Make Corellia instanced
+}	
 
-void WorldConfig::buildAttributeMap(swganh::database::DatabaseResult* result)
+void WorldConfig::buildAttributeMap(DatabaseResult* result)
 {
-    Configuration_QueryContainer	attribute;
-    uint64							count = result->getRowCount();
-	std::stringstream				dataElements;
+	Configuration_QueryContainer	attribute;
+	uint64							count = result->getRowCount();
+	BStringVector					dataElements;
 
-    swganh::database::DataBinding*	ConfigurationBinding;
+	DataBinding*					mConfigurationBinding;
 
-	ConfigurationBinding = mKernel->GetDatabase()->createDataBinding(2);
-	ConfigurationBinding->addField(swganh::database::DFT_string,offsetof(Configuration_QueryContainer,Key),128,0);
-    ConfigurationBinding->addField(swganh::database::DFT_string,offsetof(Configuration_QueryContainer,Value),128,1);
-
-	//std::string key;
-	//std::string value;
-    //gLogger->log(LogManager::DEBUG,"Adding Attribute Configuration");
+	mConfigurationBinding = mDatabase->CreateDataBinding(2);
+	mConfigurationBinding->addField(DFT_bstring,offsetof(Configuration_QueryContainer,mKey),64,0);
+	mConfigurationBinding->addField(DFT_bstring,offsetof(Configuration_QueryContainer,mValue),128,1);
 	
-	//std::unique_ptr<sql::ResultSet>& result_set = result->getResultSet();
-
-    for(uint64 i = 0; i < count; i++)
-    {
+	//gLogger->log(LogManager::DEBUG,"Adding Attribute Configuration");
+	
+	for(uint64 i = 0;i < count;i++)
+	{
+		result->GetNextRow(mConfigurationBinding,(void*)&attribute);
+		//gLogger->logCont(LogManager::DEBUG,"Adding Attribute %s: %s ",attribute.mKey.getAnsi(),attribute.mValue.getAnsi());
 		
-        result->getNextRow(ConfigurationBinding,(void*)&attribute);
-        LOG(error) << "Adding Attribute " << attribute.Key << " : " << attribute.Value;
 
-		//key = result_set->getString("attribute");
-		//value = result_set->getString("value");
+		if(hasConfiguration(attribute.mKey))
+		{
+			setConfiguration(attribute.mKey,std::string(attribute.mValue.getAnsi()));
+		}
+		else
+		{
+			addConfiguration(attribute.mKey,std::string(attribute.mValue.getAnsi()));
+		}
+	}
 
-        if(hasConfiguration(attribute.Key))
-		//if(hasConfiguration(key))
-        {
-            setConfiguration(attribute.Key,attribute.Value);
-			//setConfiguration(key, value);
-        }
-        else
-        {
-            addConfiguration(attribute.Key,attribute.Value);
-			//addConfiguration(key,value);
-        }
-		
-		/*if (!result_set->next())		{
-			mKernel->GetDatabase()->destroyResult(result);
-			return;
-		}*/
-    }
-
-    LOG(info)  << "Mapped attributes mapped: [" << count << "]";
-
-	mKernel->GetDatabase()->destroyDataBinding(ConfigurationBinding);
+	if(count > 0)
+	{
+		gLogger->log(LogManager::NOTICE,"Mapped %u Server Attributes.",count);		
+	}
 
 }
 
 //=========================================================================
 
-void WorldConfig::setConfiguration(std::string key,std::string value)
+void WorldConfig::setConfiguration(string key,std::string value)
 {
-	ConfigurationMap::iterator it = mConfigurationMap.find(swganh::memcrc(key));
+	ConfigurationMap::iterator it = mConfigurationMap.find(key.getCrc());
 
-    if(it == mConfigurationMap.end())
-    {
-    	LOG(warning) << "Could not find configuration setting with key [" << key << "]";
-        return;
-    }
+	if(it == mConfigurationMap.end())
+	{
+		gLogger->log(LogManager::INFORMATION,"WorldConfig::setConfiguration: could not find %s",key.getAnsi());
+		return;
+	}
 
-    (*it).second = value;
+	(*it).second = value;
 }
 
 //=============================================================================
 
-void WorldConfig::addConfiguration(std::string key,std::string value)
+void WorldConfig::addConfiguration(string key,std::string value)
 {
-	mConfigurationMap.insert(std::make_pair(swganh::memcrc(key),value));
+	mConfigurationMap.insert(std::make_pair(key.getCrc(),value));
 }
 
 //=============================================================================
 
-bool WorldConfig::hasConfiguration(std::string key) const
+bool WorldConfig::hasConfiguration(string key) const
 {
-	if(mConfigurationMap.find(swganh::memcrc(key)) != mConfigurationMap.end())
-        return(true);
+	if(mConfigurationMap.find(key.getCrc()) != mConfigurationMap.end())
+		return(true);
 
-    return(false);
+	return(false);
 }
 
 //=============================================================================
 
-void WorldConfig::removeConfiguration(std::string key)
+void WorldConfig::removeConfiguration(string key)
 {
-	ConfigurationMap::iterator it = mConfigurationMap.find(swganh::memcrc(key));
+	ConfigurationMap::iterator it = mConfigurationMap.find(key.getCrc());
 
-    if(it != mConfigurationMap.end())
-        mConfigurationMap.erase(it);
-    else
-    	LOG(warning) << "Could not find configuration setting with key [" << key << "]";
+	if(it != mConfigurationMap.end())
+		mConfigurationMap.erase(it);
+	else
+		gLogger->log(LogManager::INFORMATION,"WorldConfig::removeConfiguration: could not find %s",key.getAnsi());
 }
 
 //=========================================================================

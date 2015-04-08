@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DatabaseImplementationMySql.cpp" />
     <ClCompile Include="DatabaseManager.cpp" />
@@ -25,7 +22,6 @@
   <ItemGroup>
     <ClInclude Include="Database.h" />
     <ClInclude Include="DatabaseCallback.h" />
-    <ClInclude Include="DatabaseConfig.h" />
     <ClInclude Include="DatabaseImplementation.h" />
     <ClInclude Include="DatabaseImplementationMySql.h" />
     <ClInclude Include="DatabaseJob.h" />
@@ -83,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_VARIADIC_MAX=10;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;BOOST_HAS_STDINT_H;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)deps\mysql\include;$(SolutionDir)src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
@@ -99,9 +95,10 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;BOOST_HAS_STDINT_H;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)deps;$(SolutionDir)deps\boost;$(SolutionDir)deps\mysql\include;$(SolutionDir)src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

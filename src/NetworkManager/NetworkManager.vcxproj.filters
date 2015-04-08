@@ -11,19 +11,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="CompCryptor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DispatchClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MessageDispatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MessageFactory.cpp">
+    <ClCompile Include="NetConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NetworkClient.cpp">
@@ -55,31 +46,13 @@
     <ClInclude Include="CompCryptor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="declspec.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DispatchClient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Message.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MessageDispatch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MessageFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MessageOpcodes.h">
+    <ClInclude Include="NetConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NetworkCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NetworkClient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NetworkManager.h">

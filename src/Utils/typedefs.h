@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -34,8 +34,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 #define ANH_VERSION_MAJOR	"0"
-#define ANH_VERSION_MINOR	"3"
-#define ANH_VERSION_PATCH	"1"
+#define ANH_VERSION_MINOR	"2"
+#define ANH_VERSION_PATCH	"0"
 #define ANH_VERSION_NAME	"dev"
 
 //=====================================================================================
@@ -56,17 +56,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // Set the initial compiler
 //
 #if defined(_MSC_VER)
-#define ANH_COMPILER ANH_COMPILER_MSVC
-#define ANH_COMP_VER _MSC_VER
-#define snprintf _snprintf
-#define localtime_r(a, b) localtime_s(b, a)
+	#define ANH_COMPILER ANH_COMPILER_MSVC
+	#define ANH_COMP_VER _MSC_VER
+	#define snprintf _snprintf
+	#define localtime_r(a, b) localtime_s(b, a)
 
 #elif defined(__GNUC__)
-#define ANH_COMPILER ANH_COMPILER_GNUC
-#define ANH_COMP_VER (((__GNUC__)*100) + (__GNUC_MINOR__*10) + \
+	#define ANH_COMPILER ANH_COMPILER_GNUC
+	#define ANH_COMP_VER (((__GNUC__)*100) + (__GNUC_MINOR__*10) + \
 		__GNUC_PATCHLEVEL__)
 #else
-#pragma error "Compiler not supported!"
+	#pragma error "Compiler not supported!"
 #endif
 
 //=====================================================================================
@@ -74,9 +74,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 // Set the platform we are on
 //
 #if defined(__WIN32__) || defined(_WIN32)
-#define ANH_PLATFORM ANH_PLATFORM_WIN32
+	#define ANH_PLATFORM ANH_PLATFORM_WIN32
 #else
-#define ANH_PLATFORM ANH_PLATFORM_LINUX
+	#define ANH_PLATFORM ANH_PLATFORM_LINUX
 #endif
 
 //=====================================================================================
@@ -85,11 +85,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 //
 
 //495 client 1024 interserver
-#define MAX_PACKET_SIZE  496  // TODO:  This needs to be changed to a configuration variable for the network module
+#define MAX_PACKET_SIZE  2048  // TODO:  This needs to be changed to a configuration variable for the network module
 
 #define MAX_CLIENT_PACKET_SIZE  496  //
-#define MAX_SERVER_PACKET_SIZE  1400  //
-#define MAX_UNRELIABLE_PACKET_SIZE  300  //
+#define MAX_SERVER_PACKET_SIZE  2048  //
+#define MAX_UNRELIABLE_PACKET_SIZE  1024  //
 
 #if defined(__WIN32__) || defined(_WIN32)
 
@@ -125,7 +125,15 @@ typedef uint64_t  	uint64;
 typedef int64_t		sint64;
 #endif
 
-typedef unsigned SOCKET;
+#include "bstring.h"  // Bad bad bad.  Don't include headers in headers if at all possible.
+// unfotunately, this is needed here for base type funtionality.
+// This is also a circular dependency between bstring.h and typedefs.h
+// do not move the order of this include.  Needs to be after all the standard
+// type definitions.
+
+typedef BString             string;
+
+typedef unsigned int        SOCKET;
 
 // Windows and unix handle their long long specifiers differently since windows doesn't
 // fully support C99. To make everything play nicely across platforms we define our own

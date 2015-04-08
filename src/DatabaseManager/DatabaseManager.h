@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -25,61 +25,38 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#ifndef DATABASE_MANAGER_DATABASE_MANAGER_H_
-#define DATABASE_MANAGER_DATABASE_MANAGER_H_
+#ifndef ANH_DATABASEMANAGER_DATABASEMANAGER_H
+#define ANH_DATABASEMANAGER_DATABASEMANAGER_H
 
-#include <cstdint>
+#include "DatabaseType.h"
 #include <list>
-#include <memory>
+#include "Utils/typedefs.h"
 
-#include <boost/noncopyable.hpp>
 
-#include "DatabaseManager/DatabaseConfig.h"
-#include "DatabaseManager/DatabaseType.h"
-
-namespace swganh{
-namespace database{
-
+//======================================================================================================================
 class Database;
+enum  DBType;
 
-/*! Manages multiple database connections.
-*/
-class DatabaseManager : private boost::noncopyable {
+typedef std::list<Database*>           DatabaseList;
+
+
+//======================================================================================================================
+class DatabaseManager
+{
 public:
-	/**
-	 * \brief Default constructor.
-	 *
-	 * \param db_config Database configuration options.
-	 * \see DatabaseConfig
-	 */
-	explicit DatabaseManager(const DatabaseConfig& database_configuration)
-		: database_configuration_(database_configuration) { }
+                                  DatabaseManager(void);
+                                  ~DatabaseManager(void);
 
-    /*! Processes all current database connections.
-    */
-    void process();
+  void                            Process(void);
 
-    /*! Connects to a specified database.
-    *
-    * \param host The database host to connect to.
-    * \param port The port of the database host to connect to.
-    * \param user The username for accessing the requested schema.
-    * \param pass The password for accessing the requested schema.
-    * \param schema The database to connect to.
-    *
-    * \return The instance of the database created after successful connection.
-    */
-    Database* connect(DBType type, 
-        const std::string& host, 
-        uint16_t port, 
-        const std::string& user, 
-        const std::string& pass, 
-        const std::string& dbname);
+  Database*                       Connect(DBType type, int8* host, uint16 port, int8* user, int8* pass, int8* dbname);
 
 private:
-    typedef std::list<std::shared_ptr<Database>> DatabaseList;
-    DatabaseList database_list_;
-	DatabaseConfig database_configuration_;
+  DatabaseList                    mDatabaseList;
 };
-}}//namespace
-#endif  // DATABASE_MANAGER_DATABASE_MANAGER_H_
+
+
+
+#endif //OOMSERVER_DATABASEMANAGER_DATABASEMANAGER_H
+
+

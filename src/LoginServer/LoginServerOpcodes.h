@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -31,15 +31,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 enum login_opcodes
 {
-    opLoginClientToken					=	0xAAB296C6,
-    opLoginEnumCluster					=	0xC11C63B9,
-    opLoginClusterStatus				=	0x3436AEB6,
-    opEnumerateCharacterId				=	0x65EA4574,
-    opLoginClientId						=	0x41131f96,
-    opDeleteCharacterMessage			=	0xe87ad031,
-    opDeleteCharacterReplyMessage		=	0x8268989b,
+	opLoginClientToken					=	0xAAB296C6,
+	opLoginEnumCluster					=	0xC11C63B9,
+	opLoginClusterStatus				=	0x3436AEB6,
+	opEnumerateCharacterId				=	0x65EA4574,
+	opLoginClientId						=	0x41131f96,
+	opDeleteCharacterMessage			=	0xe87ad031,
+	opDeleteCharacterReplyMessage		=	0x8268989b,
 
-    opHeartBeat							=	0xa16cf9af,
+	opHeartBeat							=	0xa16cf9af,
 };
 
 #endif

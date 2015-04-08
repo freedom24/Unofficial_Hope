@@ -64,9 +64,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="MessageLib.h">
       <Filter>Header Files</Filter>
     </ClInclude>

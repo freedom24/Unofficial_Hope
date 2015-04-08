@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -27,34 +27,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "NetworkClient.h"
 #include "Session.h"
-
-#include "NetworkManager/Message.h"
+#include "LogManager/LogManager.h"
+#include "Common/Message.h"
 
 
 
 //======================================================================================================================
 void NetworkClient::SendChannelA(Message* message, uint8 priority, bool fastpath)
-{
-    message->setPriority(priority);
-    message->setFastpath(fastpath);
-    message->mSession = mSession;
+{ 
+  message->setPriority(priority);
+  message->setFastpath(fastpath);
+  message->mSession = mSession;
 
-
-    return mSession->SendChannelA(message);
+ 
+  return mSession->SendChannelA(message);
 }
 
 void NetworkClient::SendChannelAUnreliable(Message* message, uint8 priority)
-{
-    message->setPriority(priority);
-    message->setFastpath(true);
+{ 
+  message->setPriority(priority);
+  message->setFastpath(true);
 
-    return mSession->SendChannelAUnreliable(message);
+  return mSession->SendChannelAUnreliable(message);
 }
 
 
 //======================================================================================================================
 void NetworkClient::Disconnect(uint8 reason)
 {
-    mSession->setCommand(SCOM_Disconnect);
+  mSession->setCommand(SCOM_Disconnect);
 }
 

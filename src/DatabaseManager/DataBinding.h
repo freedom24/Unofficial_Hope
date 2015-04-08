@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,9 +28,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_DATABASEMANAGER_DATABINDING_H
 #define ANH_DATABASEMANAGER_DATABINDING_H
 
-#include <cassert>
-#include <cstdint>
+#include "Utils/typedefs.h"
 #include <vector>
+
+#include <cassert>
 
 // This is an example of how to setup a DataBinding object before passing it to ExecuteStatement()
 // DataBindings should only be setup once then used whenever the particualar query/class object needs it.
@@ -43,97 +44,89 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
   binding->setFieldData(DFT_string, offsetof(AccountData, mName), 32);
 */
 
-namespace swganh {
-namespace database {
 
+//======================================================================================================================
 enum DataFieldType
 {
-    DFT_none,
-    DFT_int8,
-    DFT_uint8,
-    DFT_int16,
-    DFT_uint16,
-    DFT_int32,
-    DFT_uint32,
-    DFT_int64,
-    DFT_uint64,
-    DFT_float,
-    DFT_double,
-    DFT_datetime,
-    DFT_string,
-	DFT_stdstring,
-	DFT_stdu16string,
-    DFT_bstring,
-    DFT_raw
+  DFT_none,
+  DFT_int8,
+  DFT_uint8,
+  DFT_int16,
+  DFT_uint16,
+  DFT_int32,
+  DFT_uint32,
+  DFT_int64,
+  DFT_uint64,
+  DFT_float,
+  DFT_double,
+  DFT_datetime,
+  DFT_string,
+  DFT_bstring,
+  DFT_raw
 };
 
 
-struct DataField {
-    DataField() 
-        : type(DFT_none)
-        , offset(0)
-        , size(0)
-        , column(0) {}
+//======================================================================================================================
 
-    DataFieldType type;
-    uint32_t      offset;
-    uint32_t      size;
-    uint32_t      column;
+class DataField
+{
+	public:
+
+		DataField(void) : mDataType(DFT_none), mDataOffset(0), mDataSize(0), mColumn(0) {}; 
+
+		DataFieldType               mDataType;
+		uint32                      mDataOffset;
+		uint32                      mDataSize;
+		uint32                      mColumn;
 };
 
+//======================================================================================================================
 
-class DataBinding {
-public:
-    DataBinding(uint32_t field_count) 
-        : field_count_(field_count)
-        , field_index_(0)
-    {}
+class DataBinding
+{
+	public:
+					DataBinding(uint32 fieldCount) : mFieldCount(fieldCount), mFieldIndex(0) { }
 
-    uint32_t getFieldCount() {
-        return field_count_;
-    }
+	  uint32		getFieldCount(void)          { return mFieldCount; }
+	  void			setFieldCount(uint32 count)	{ mFieldCount = count; }
 
-    void setFieldCount(uint32_t count) {
-        field_count_ = count;
-    }
+	  uint32		getFieldIndex(void)          { return mFieldIndex; }
 
-    uint32_t getFieldIndex() {
-        return field_count_;
-    }
+	  void			addField(DataFieldType type, uint32 offset, uint32 size, uint32 column = 0);
 
-    void addField(DataFieldType type, uint32_t offset, uint32_t size, uint32_t column = 0);
-    const DataField& getField(uint32_t index);
-
-private:
-    uint32_t field_count_;
-    uint32_t field_index_;
-    DataField data_fields_[200];
+	  uint32		mFieldCount;
+	  uint32		mFieldIndex;
+	  DataField		mDataFields[200];
 };
 
+//======================================================================================================================
 
-inline void DataBinding::addField(DataFieldType type, uint32_t offset, uint32_t size, uint32_t column) {
-    // FIXME: This requires an assert on index.
-    data_fields_[field_index_].type    = type;
-    data_fields_[field_index_].offset  = offset;
-    data_fields_[field_index_].size    = size;
+inline void DataBinding::addField(DataFieldType type, uint32 offset, uint32 size, uint32 column)
+{
+	// FIXME: This requires an assert on index.  
+	mDataFields[mFieldIndex].mDataType    = type;
+	mDataFields[mFieldIndex].mDataOffset  = offset;
+	mDataFields[mFieldIndex].mDataSize    = size;
 
-    assert(field_index_ <= 200 && "Exceeds max field size of 200");
+	assert(mFieldIndex <= 200 && "Exceeds max field size of 200");
 
-    if (column == 0) {
-        data_fields_[field_index_].column = field_index_;
-    } else {
-        data_fields_[field_index_].column = column;
-    }
+	if (column == 0)
+	{
+		mDataFields[mFieldIndex].mColumn    = mFieldIndex;
+	}
+	else
+	{
+		mDataFields[mFieldIndex].mColumn    = column;
+	}
 
-    // Increment our field index
-    field_index_++;
+	// Increment our field index
+	mFieldIndex++;
 }
 
-inline const DataField& DataBinding::getField(uint32_t index) {
-    return data_fields_[index];
-}
-
-}}
 
 #endif //MMOSERVER_DATABASEMANAGER_DATABINDING_H
+
+
+
+
 

@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -25,35 +25,53 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "DatabaseManager/DatabaseManager.h"
-
-#include <algorithm>
-
-#include "DatabaseManager/Database.h"
-
-using namespace swganh;
-using namespace database;
-
-void DatabaseManager::process() {
-    std::for_each(database_list_.begin(), database_list_.end(), 
-        [] (std::shared_ptr<Database> db) {
-            db->process();
-        });
-}
+#include "DatabaseManager.h"
+#include "Database.h"
 
 
-Database* DatabaseManager::connect(DBType type, 
-                                   const std::string& host, 
-                                   uint16_t port, 
-                                   const std::string& user, 
-                                   const std::string& pass, 
-                                   const std::string& schema)
+//======================================================================================================================
+DatabaseManager::DatabaseManager(void)
 {
-    // Create our new Database object and initiailzie it.
-	auto database = std::make_shared<Database>(type, host, port, user, pass, schema, database_configuration_);
 
-    // Add the new DB to our process list.
-    database_list_.push_back(database);
-
-    return database.get();
 }
+
+
+//======================================================================================================================
+DatabaseManager::~DatabaseManager(void)
+{
+	DatabaseList::iterator iter = mDatabaseList.begin();
+
+	while(iter != mDatabaseList.end())
+	{
+		delete(*iter);
+		iter = mDatabaseList.erase(iter);
+	}
+}
+
+//======================================================================================================================
+void DatabaseManager::Process(void)
+{
+  DatabaseList::iterator iter;
+  for (iter = mDatabaseList.begin(); iter != mDatabaseList.end(); iter++)
+  {
+    (*iter)->Process();
+  }
+}
+
+
+//======================================================================================================================
+Database* DatabaseManager::Connect(DBType type, int8* host, uint16 port, int8* user, int8* pass, int8* schema)
+{
+  Database* newDatabase = 0;
+
+  // Create our new Database object and initiailzie it.
+  newDatabase = new Database(type, host, port, user, pass, schema);
+
+  // Add the new DB to our process list.
+  mDatabaseList.push_back(newDatabase);
+
+  return newDatabase;
+}
+
+
+

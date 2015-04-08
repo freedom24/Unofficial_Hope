@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2015 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,20 +28,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_CHATSERVER_H
 #define ANH_CHATSERVER_H
 
-#include "Utils/bstring.h"
 #include "Utils/typedefs.h"
-#include "Common/Server.h"
 
 //======================================================================================================================
 
 class CharacterAdminHandler;
 class ChatManager;
 class CSRManager;
-namespace swganh	{
-namespace	database	{
 class Database;
 class DatabaseManager;
-}}
 class DispatchClient;
 class GroupManager;
 class MessageDispatch;
@@ -55,52 +50,51 @@ class StructureManagerChatHandler;
 
 class ProcessAddress
 {
-public:
+	public:
 
-    uint32				mType;
-    std::string			mAddress;
-    uint16				mPort;
-    uint32				mStatus;
-    uint32				mActive;
+		uint32		mType;
+		int8        mAddress[16];
+		uint16      mPort;
+		uint32      mStatus;
+		uint32      mActive;
 };
 
 //======================================================================================================================
-class ChatServer : public common::BaseServer
+class ChatServer
 {
-public:
+	public:
 
-    ChatServer(int argc, char* argv[]);
-    ~ChatServer();
+		ChatServer();
+		~ChatServer();
 
-    void    Process();
+		void    Process();
 
-private:
+	private:
 
-    void    _updateDBServerList(uint32 status);
-    void    _connectToConnectionServer();
+		void    _updateDBServerList(uint32 status);
+		void    _connectToConnectionServer();
 
-    NetworkManager*						mNetworkManager;
-    swganh::database::DatabaseManager*  mDatabaseManager;
+		NetworkManager*				  mNetworkManager;
+		DatabaseManager*              mDatabaseManager;
 
-    Service*							mRouterService;
-    swganh::database::Database*         mDatabase;
+		Service*                      mRouterService;
+		Database*                     mDatabase;
 
-    MessageDispatch*					mMessageDispatch;
+		MessageDispatch*              mMessageDispatch;
 
-    CharacterAdminHandler*        mCharacterAdminHandler;
-    PlanetMapHandler*			  mPlanetMapHandler;
-    TradeManagerChatHandler*	  mTradeManagerChatHandler;
-    StructureManagerChatHandler*  mStructureManagerChatHandler;
-    ChatManager*				  mChatManager;
-    GroupManager*				  mGroupManager;
-    CSRManager*					  mCSRManager;
+		CharacterAdminHandler*        mCharacterAdminHandler;
+		PlanetMapHandler*			  mPlanetMapHandler;
+		TradeManagerChatHandler*	  mTradeManagerChatHandler;
+		StructureManagerChatHandler*  mStructureManagerChatHandler;
+		ChatManager*				  mChatManager;
+		GroupManager*				  mGroupManager;
+		CSRManager*					  mCSRManager;
 
-    DispatchClient*				  mClient;
-    uint64					      mLastHeartbeat;
+		DispatchClient*				  mClient;
 
 };
 
-#endif
+#endif 
 
 
 

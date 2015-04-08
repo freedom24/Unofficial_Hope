@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,66 +28,63 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_DATABASEMANAGER_DATABASEWORKERTHREAD_H
 #define ANH_DATABASEMANAGER_DATABASEWORKERTHREAD_H
 
-#include <cstdint>
-#include <functional>
-#include <memory>
-#include <string>
+#include "DatabaseType.h"
+#include "Utils/typedefs.h"
+#include <boost/thread/thread.hpp>
 
-#include <boost/noncopyable.hpp>
+//======================================================================================================================
 
-#include "Utils/ActiveObject.h"
-
-#include "DatabaseManager/DatabaseType.h"
-
-namespace swganh {
-namespace database {
-
-struct DatabaseJob;
+class Database;
+class DatabaseJob;
 class DatabaseImplementation;
 
 
-/*! \brief An encapsulation of a thread dedicated to executing an sql query 
-* asynchronusly. 
-*/
-class DatabaseWorkerThread : private boost::noncopyable {
+//======================================================================================================================
+class DatabaseWorkerThread
+{
 public:
-    typedef std::function<void (DatabaseWorkerThread*, DatabaseJob*)> Callback;
+                              DatabaseWorkerThread(DBType type, Database* datbase, int8* host, uint16 port, int8* user, int8* pass, int8* schema);
+                              ~DatabaseWorkerThread(void);
 
-public:
-    /*! Overloaded constructor takes in the managing Database instance and 
-    * connection details for starting a new connection.
-    * 
-    * \param type The type of database to connect to.
-    * \param host The hostname to connect to the database on.
-    * \param post The port to connect to the database on.
-    * \param user The username to connect to the database with.
-    * \param pass The password to connect to the database with.
-    * \param schema The schema to connect to to perform queries on.
-    */
-    DatabaseWorkerThread(DBType type, 
-                         const std::string& host, 
-                         uint16_t port, 
-                         const std::string& user, 
-                         const std::string& pass, 
-                         const std::string& schema);
+  virtual void				  run(); 
 
-    /*! Executes a DatabaseJob asynchronusly on the worker's private thread.
-    *
-    * \param job The database job to execute.
-    * \param callback The callback to invoke once execution of the job 
-    *   has completed.
-    */
-    void executeJob(DatabaseJob* job, Callback callback);
+  void                        ExecuteJob(DatabaseJob* job);
 
+  void						  requestExit(){ mExit = true; }
+
+protected:
+  int8                        mHostname[256];
+  int16                       mPort;
+  int8                        mUsername[64];
+  int8                        mPassword[64];
+  int8                        mSchema[64];
+  
 private:
-    // Disable default construction.
-    DatabaseWorkerThread();
+  void                        _startup(void);
+  void                        _shutdown(void);
 
-    utils::ActiveObject active_;
-    
-    std::unique_ptr<DatabaseImplementation> database_impl_;
+  bool						  mIsDone;
+  Database*                   mDatabase;
+  DatabaseImplementation*     mDatabaseImplementation;
+
+  DatabaseJob*                mCurrentJob;
+  DBType                      mDatabaseImplementationType;
+
+  boost::mutex              mWorkerThreadMutex;
+  boost::thread			    mThread;
+  bool						  mExit;
 };
 
-}}
+
+
+//======================================================================================================================
+
+inline void DatabaseWorkerThread::ExecuteJob(DatabaseJob* job)
+{
+    boost::mutex::scoped_lock lk(mWorkerThreadMutex);
+    mCurrentJob = job;
+}
+
+//======================================================================================================================
 
 #endif // ANH_DATABASEMANAGER_DATABASEWORKERTHREAD_H

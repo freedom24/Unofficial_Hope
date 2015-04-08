@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -29,10 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define ANH_NETWORKMANAGER_PACKETFACTORY_H
 
 #include "Utils/typedefs.h"
-#include "anh/Utils/clock.h"
-#include "NetworkConfig.h"
+#include "Utils/clock.h"
 #include "Packet.h"
 #include <boost/pool/pool.hpp>
+
 
 //======================================================================================================================
 
@@ -42,23 +42,23 @@ typedef boost::pool<boost::default_user_allocator_malloc_free> PacketPool;
 
 class PacketFactory
 {
-public:
+	public:
 
-    PacketFactory(bool serverservice, NetworkConfig& network_configuration);
-    ~PacketFactory(void);
+		PacketFactory(bool serverservice);
+		~PacketFactory(void);
 
-    void		Process(void);
+		void		Process(void);
 
-    Packet*		CreatePacket(void);
-    void		DestroyPacket(Packet* packet);
+		Packet*		CreatePacket(void);
+		void		DestroyPacket(Packet* packet);
 
-    uint16		mMaxPayLoad;
+		uint16		mMaxPayLoad;
 
-private:
-    uint32							mPacketCount;
-
-    PacketPool						mPacketPool;
-    boost::recursive_mutex			mPacketFactoryMutex;
+	private:
+		uint32							mPacketCount;
+        PacketPool						mPacketPool;
+		boost::recursive_mutex			mPacketFactoryMutex;
+	  
 };
 
 //======================================================================================================================

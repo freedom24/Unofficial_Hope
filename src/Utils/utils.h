@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "typedefs.h"
 #include <string>
 
+
 //==============================================================================================================================
 
 uint64 swap64(uint64 value);
@@ -38,9 +39,9 @@ std::string strRep(std::string a,std::string b,std::string c);
 
 namespace Anh_Utils
 {
-    int cmpistr(const char* s1, const char* s2);
-    int cmpnistr(const char* s1, const char* s2, size_t length);
-    int kbhit(void);
+	int cmpistr(const char* s1, const char* s2);
+	int cmpnistr(const char* s1, const char* s2, size_t length);
+	int kbhit(void);
 }
 
 //==============================================================================================================================

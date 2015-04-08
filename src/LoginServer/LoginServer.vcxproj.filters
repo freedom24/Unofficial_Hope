@@ -31,9 +31,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="LoginManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,9 +38,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DatabaseCallback.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DatabaseConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DatabaseImplementation.h">

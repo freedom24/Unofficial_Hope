@@ -1,28 +1,3 @@
-# Unofficial_Hope
-#
-Disclamer, I do not take credit for any of the work presented here so far, most of my work has be to copy and paste then reorder from variouse places. current how to build will be placed in the wiki for this repo (see link to the right)
-
-**Project staus's**
-* Utils - builds
-* DatabaseManager - builds
-* NetworkManager - builds
-* Common - builds
-
-* MessageLib - Error	1	error C2338: The C++ Standard doesn't provide a hash for this type.	c:\program files (x86)\microsoft visual studio 11.0\vc\include\xstddef	238	1	MessageLib
-
-* ConnectionServer -Untested
-* PingServer - Untested
-* LoginServer - Untested
-* ChatServer - Untested
-* Zone - Untested
-* Test -Untested -possibly Unneeded
-
-##What I know so far / to do!##
-
-* The build server bats don't work - needs to be fixed
-* Deps are MIA - need to zip and uplaods them somewhere
-* Deps need to list what you need to build
-
 # MMOServer #
 
 The MMOServer is the flagship project for the [SWG:ANH Team][1]. It is a cross platform massively multiplayer game server intended to emulate the [Star Wars Galaxies][2] Pre-Combat Upgrade experience. The base of the server is written in C++ with some LUA sprinkled in.

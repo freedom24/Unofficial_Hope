@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -39,20 +39,20 @@ typedef struct z_stream_s z_stream;
 class CompCryptor
 {
 public:
-    CompCryptor(void);
-    ~CompCryptor(void);
+                                    CompCryptor(void);
+                                    ~CompCryptor(void);
 
-    int                               Compress(int8* inData, uint32 inLen, int8* outData, uint32 outLen);
-    int                               Decompress(int8* inData, uint32 inLen, int8* outData, uint32 outLen);
+  int                               Compress(int8* inData, uint32 inLen, int8* outData, uint32 outLen);
+  int                               Decompress(int8* inData, uint32 inLen, int8* outData, uint32 outLen);
 
-    int                               Encrypt(int8* data, uint32 len, uint32 seed);
-    int                               Decrypt(int8* data, uint32 len, uint32 seed);
+  int                               Encrypt(int8* data, uint32 len, uint32 seed);
+  int                               Decrypt(int8* data, uint32 len, uint32 seed);
 
-    uint32                            GenerateCRC(int8* data, uint32 len, uint32 seed);
+  uint32                            GenerateCRC(int8* data, uint32 len, uint32 seed);
 
 private:
-    z_stream*                         mStreamData;
-    static const uint32               mCrcTable[256];
+  z_stream*                         mStreamData;
+  static const uint32               mCrcTable[256];
 };
 
 

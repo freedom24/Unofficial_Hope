@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -25,52 +25,61 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "DatabaseManager/Transaction.h"
+#include "Transaction.h"
+
+#include "Database.h"
+#include "DatabaseCallback.h"
+#include "DatabaseImplementation.h"
+#include "DatabaseImplementationMySql.h"
+
+#include "LogManager/LogManager.h"
 
 #include <cstdarg>
-#include <cstdint>
 
-#include "DatabaseManager/Database.h"
-#include "DatabaseManager/DatabaseCallback.h"
-#include "DatabaseManager/DatabaseImplementation.h"
-#include "DatabaseManager/DatabaseImplementationMySql.h"
+//======================================================================================================================
 
-using namespace swganh;
-using namespace database;
-
-Transaction::Transaction(Database* database, DatabaseCallback* callback, void* ref)
-    : mDatabase(database)
-    , mCallback(callback)
-    , mReference(ref)
+Transaction::Transaction(Database* database,DatabaseCallback* callback,void* ref) :
+mDatabase(database),mCallback(callback),mReference(ref)
 {
-    mQueries.flush();
-    mQueries << "CALL "<< mDatabase->galaxy()<<".sp_MultiTransaction(\"";
+	mQueries.flush();
+	mQueries << "CALL sp_MultiTransaction(\"";
 }
 
+//======================================================================================================================
 
-Transaction::~Transaction() {
-    mQueries.flush();
+Transaction::~Transaction()
+{
+	mQueries.flush();
 }
 
+//======================================================================================================================
 
-void Transaction::addQuery(const char* query, ...) {
-    va_list	args;
-    va_start(args,query);
-    char localSql[2048], escapedSql[2500];
-    int32_t	len = vsnprintf(localSql, sizeof(localSql), query, args);
+void Transaction::addQuery(int8* query,...)
+{
+	va_list	args;
+	va_start(args,query);
+	int8	localSql[2048],escapedSql[2500];
+	int32	len = vsnprintf(localSql,sizeof(localSql),query,args);
 
-    // need to escape
-    mDatabase->escapeString(escapedSql, localSql, len);
+	gLogger->log(LogManager::DEBUG, "Transaction: Add query");
+	// need to escape
+	mDatabase->Escape_String(escapedSql,localSql,len);
 
-    mQueries << escapedSql << "$$";
+	mQueries << escapedSql << "$$";
 
-    va_end(args);
+	va_end(args);
 }
 
+//======================================================================================================================
 
-void Transaction::execute() {
-    mQueries << "\")";
+void Transaction::execute()
+{
+	mQueries << "\")";
 
-    mDatabase->executeProcedureAsync(mCallback, mReference, mQueries.str().c_str());
-    mDatabase->destroyTransaction(this);
+	mDatabase->ExecuteProcedureAsync(mCallback,mReference,(int8*)(mQueries.str().c_str()));
+	mDatabase->destroyTransaction(this);
 }
+
+//======================================================================================================================
+
+

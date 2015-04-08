@@ -4,7 +4,7 @@ This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Em
 
 For more information, visit http://www.swganh.com
 
-Copyright (c) 2006 - 2014 The SWG:ANH Team
+Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 Use of this source code is governed by the GPL v3 license that can be found
 in the COPYING file or at http://www.gnu.org/licenses/gpl-3.0.html
@@ -28,8 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef ANH_UTILS_EVENTHANDLER_H
 #define ANH_UTILS_EVENTHANDLER_H
 
-#include <typeinfo>
 #include <boost/ptr_container/ptr_map.hpp>
+#include <typeinfo>
 
 
 //======================================================================================================================
@@ -46,9 +46,9 @@ class TypeInfo;
 
 class Event
 {
-public:
+	public:
 
-    virtual ~Event() {};
+		virtual ~Event(){};
 };
 
 //======================================================================================================================
@@ -58,16 +58,14 @@ public:
 
 class HandlerFunctionBase
 {
-public:
+	public:
 
-    virtual ~HandlerFunctionBase() {};
-    void execute(const Event* event) {
-        call(event);
-    }
+		virtual ~HandlerFunctionBase(){};
+		void execute(const Event* event){ call(event); }
 
-private:
+	private:
 
-    virtual void call(const Event*) {}
+		virtual void call(const Event*) = 0;
 };
 
 //======================================================================================================================
@@ -78,20 +76,20 @@ private:
 template <class T,class EventT>
 class MemberFunctionHandler : public HandlerFunctionBase
 {
-public:
+	public:
 
-    typedef void (T::*MemberFunc)(const EventT*);
-    MemberFunctionHandler(T* instance,MemberFunc memFn) : mInstance(instance),mFunction(memFn) {}
+		typedef void (T::*MemberFunc)(const EventT*);
+		MemberFunctionHandler(T* instance,MemberFunc memFn) : mInstance(instance),mFunction(memFn){}
 
-    void call(const Event* event)
-    {
-        (mInstance->*mFunction)(static_cast<const EventT*>(event));
-    }
+		void call(const Event* event)
+		{
+			(mInstance->*mFunction)(static_cast<const EventT*>(event));
+		}
 
-private:
+	private:
 
-    T*			mInstance;
-    MemberFunc	mFunction;
+		T*			mInstance;
+		MemberFunc	mFunction;
 };
 
 //======================================================================================================================
@@ -102,17 +100,16 @@ private:
 class EventHandler
 {
 public:
-    virtual ~EventHandler();
+	virtual ~EventHandler();
 
-    void handleEvent(const Event*);
+	void handleEvent(const Event*);
 
-    template <class T,class EventT>
-    void registerEventFunction(T*,void(T::*memFn)(const EventT*));
+	template <class T,class EventT>
+	void registerEventFunction(T*,void(T::*memFn)(const EventT*));
 
 private:
-
-    typedef boost::ptr_map<const TypeInfo, HandlerFunctionBase> Handlers;
-    Handlers mHandlers;
+	typedef boost::ptr_map<const TypeInfo, HandlerFunctionBase> Handlers;
+	Handlers mHandlers;
 };
 
 //======================================================================================================================
@@ -123,7 +120,7 @@ private:
 template <class T,class EventT>
 void EventHandler::registerEventFunction(T* obj,void (T::*memFn)(const EventT*))
 {
-    mHandlers.insert(TypeInfo(typeid(EventT)), new MemberFunctionHandler<T,EventT>(obj,memFn));
+	mHandlers.insert(TypeInfo(typeid(EventT)), new MemberFunctionHandler<T,EventT>(obj,memFn));
 }
 
 //======================================================================================================================
@@ -133,18 +130,18 @@ void EventHandler::registerEventFunction(T* obj,void (T::*memFn)(const EventT*))
 
 class TypeInfo
 {
-public:
+	public:
 
-    explicit TypeInfo(const std::type_info& info) : mTypeInfo(info) {}
+        explicit TypeInfo(const std::type_info& info) : mTypeInfo(info) {};
 
-    bool operator < (const TypeInfo& rhs) const
-    {
-        return mTypeInfo.before(rhs.mTypeInfo) != 0;
-    }
+		bool operator < (const TypeInfo& rhs) const
+		{
+			return mTypeInfo.before(rhs.mTypeInfo) != 0;
+		}
 
-private:
+	private:
 
-    const std::type_info& mTypeInfo;
+        const std::type_info& mTypeInfo;
 };
 
 //======================================================================================================================

@@ -26,14 +26,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "UIInputField.h"
-#include "Common/MessageFactory.h"
+#include "NetworkManager/MessageFactory.h"
 
 //================================================================================
 
-UIInputField::UIInputField(uint32 id,string name,bool enabled,uint16 maxLength)
-: UIElement(id,SUI_Element_InputField),mEnabled(enabled),mMaxLength(maxLength)
+UIInputField::UIInputField(uint32 id,BString name,bool enabled,uint16 maxLength)
+    : UIElement(id,SUI_Element_InputField),mEnabled(enabled),mMaxLength(maxLength)
 {
-	mName	= name.getAnsi();
+    mName	= name.getAnsi();
 }
 
 //================================================================================
@@ -46,69 +46,43 @@ UIInputField::~UIInputField()
 
 uint32 UIInputField::getPropertyCount()
 {
-	if(mEnabled)
-		return(3);
-	else
-		return(3);
+    if(mEnabled)
+        return(3);
+    else
+        return(3);
 }
 
 //================================================================================
 
 void UIInputField::addMessageData()
 {
-	string	strFalse	= L"False";
-	string	strTrue		= L"True";
+    BString	strFalse	= L"False";
+    BString	strTrue		= L"True";
 
-	string lengthStr;
-	lengthStr.setLength(sprintf(lengthStr.getAnsi(),"%u",mMaxLength));
-	lengthStr.convert(BSTRType_Unicode16);
+    char temp[64];
+    sprintf(temp,"%u",mMaxLength);
+	std::string tempString(temp);
 
-	if(mEnabled)
-	{
-		gMessageFactory->addUint8(3);
-		gMessageFactory->addUint32(1);
-		gMessageFactory->addString(strTrue);
-		gMessageFactory->addUint32(2);
-		gMessageFactory->addString(mName);
-		gMessageFactory->addString(BString("Enabled"));
+    gMessageFactory->addUint8(3);
+    gMessageFactory->addUint32(1);
+    gMessageFactory->addString((mEnabled) ? strTrue : strFalse);
+    gMessageFactory->addUint32(2);
+    gMessageFactory->addString(mName);
+    gMessageFactory->addString(BString("Enabled"));
 
-		gMessageFactory->addUint8(3);
-		gMessageFactory->addUint32(1);
-		gMessageFactory->addString(strTrue);
-		gMessageFactory->addUint32(2);
-		gMessageFactory->addString(mName);
-		gMessageFactory->addString(BString("visible"));
+    gMessageFactory->addUint8(3);
+    gMessageFactory->addUint32(1);
+    gMessageFactory->addString((mEnabled) ? strTrue : strFalse);
+    gMessageFactory->addUint32(2);
+    gMessageFactory->addString(mName);
+    gMessageFactory->addString(BString("visible"));
 
-		gMessageFactory->addUint8(3);
-		gMessageFactory->addUint32(1);
-		gMessageFactory->addString(lengthStr);
-		gMessageFactory->addUint32(2);
-		gMessageFactory->addString(mName);
-		gMessageFactory->addString(BString("MaxLength"));
-	}
-	else
-	{
-		gMessageFactory->addUint8(3);
-		gMessageFactory->addUint32(1);
-		gMessageFactory->addString(strFalse);
-		gMessageFactory->addUint32(2);
-		gMessageFactory->addString(mName);
-		gMessageFactory->addString(BString("Enabled"));
-
-		gMessageFactory->addUint8(3);
-		gMessageFactory->addUint32(1);
-		gMessageFactory->addString(strFalse);
-		gMessageFactory->addUint32(2);
-		gMessageFactory->addString(mName);
-		gMessageFactory->addString(BString("visible"));
-
-		gMessageFactory->addUint8(3);
-		gMessageFactory->addUint32(1);
-		gMessageFactory->addString(lengthStr);
-		gMessageFactory->addUint32(2);
-		gMessageFactory->addString(mName);
-		gMessageFactory->addString(BString("MaxLength"));
-	}
+    gMessageFactory->addUint8(3);
+    gMessageFactory->addUint32(1);
+    gMessageFactory->addString(std::wstring(tempString.begin(), tempString.end()));
+    gMessageFactory->addUint32(2);
+    gMessageFactory->addString(mName);
+    gMessageFactory->addString(BString("MaxLength"));
 }
 
 //================================================================================

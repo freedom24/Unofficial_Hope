@@ -29,14 +29,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 RegionObject::RegionObject() : Object()
 {
-	mType = ObjType_Region;
-	mActive = false;
+    mType = ObjType_Region;
+    mActive = false;
 }
 
 RegionObject::~RegionObject()
 {
 }
-
 bool RegionObject::addVisitor(Object* visitor)
 {
 	if(checkVisitor(visitor))
@@ -76,4 +75,7 @@ void RegionObject::removeVisitor(Object* object)
 
 	}
 	
+}
+std::shared_ptr<RegionObject> RegionObject::getSharedFromThis() {
+    return std::static_pointer_cast<RegionObject>(Object::shared_from_this());
 }

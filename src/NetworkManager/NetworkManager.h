@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <queue>
 #include "Utils/concurrent_queue.h"
 #include "Utils/typedefs.h"
+#include "NetworkConfig.h"
 #include "Service.h"
 
 //======================================================================================================================
@@ -48,26 +49,28 @@ typedef Anh_Utils::concurrent_queue<Service*>	ServiceQueue;
 
 class NetworkManager
 {
-	public:
+public:
 
-		NetworkManager(void);
-		~NetworkManager(void);
+    NetworkManager(const NetworkConfig& network_configuration);
+    ~NetworkManager(void);
 
-		void		Process(void);
+    void		Process(void);
 
-		Service*	GenerateService(int8* address, uint16 port,uint32 mfHeapSize, bool serverservice);
-		void		DestroyService(Service* service);
-		Client*		Connect(void);
+    Service*	GenerateService(int8* address, uint16 port,uint32 mfHeapSize, bool serverservice);
+    void		DestroyService(Service* service);
+    Client*		Connect(void);
 
-		void		RegisterCallback(NetworkCallback* callback);
-		void		UnregisterCallback(NetworkCallback* callback);
+    void		RegisterCallback(NetworkCallback* callback);
+    void		UnregisterCallback(NetworkCallback* callback);
 
-		void		AddServiceToProcessQueue(Service* service);
+    void		AddServiceToProcessQueue(Service* service);
 
-	private:
+private:
 
-	  ServiceQueue		mServiceProcessQueue;
-	  uint32			mServiceIdIndex;
+    ServiceQueue		mServiceProcessQueue;
+	NetworkConfig		network_configuration_;
+
+    uint32			mServiceIdIndex;
 };
 
 
@@ -75,12 +78,12 @@ class NetworkManager
 
 inline void NetworkManager::AddServiceToProcessQueue(Service* service)
 {
-	if(!service->isQueued())
-	{
-		service->setQueued(true);
+    if(!service->isQueued())
+    {
+        service->setQueued(true);
 
-		mServiceProcessQueue.push(service);
-	}
+        mServiceProcessQueue.push(service);
+    }
 }
 
 //======================================================================================================================

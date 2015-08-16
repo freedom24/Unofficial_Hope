@@ -25,15 +25,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 #include "ConnectionDispatch.h"
-
 #include "ConnectionClient.h"
 #include "ConnectionDispatchCallback.h"
-
-#include "LogManager/LogManager.h"
-
 #include "NetworkManager/Session.h"
+#include "NetworkManager/Message.h"
 
-#include "Common/Message.h"
+
+
+
+#include "Utils/logger.h"
 
 #include <stdio.h>
 
@@ -62,51 +62,51 @@ void ConnectionDispatch::Process(void)
 
 void ConnectionDispatch::RegisterMessageCallback(uint32 opcode, ConnectionDispatchCallback* callback)
 {
-	// Place our new callback in the map.
-	mMessageCallbackMap.insert(std::make_pair(opcode,callback));
+    // Place our new callback in the map.
+    mMessageCallbackMap.insert(std::make_pair(opcode,callback));
 }
 
 //======================================================================================================================
 
 void ConnectionDispatch::UnregisterMessageCallback(uint32 opcode)
 {
-	// Remove our callback from the map.
-	ConnectionMessageCallbackMap::iterator iter = mMessageCallbackMap.find(opcode);
+    // Remove our callback from the map.
+    ConnectionMessageCallbackMap::iterator iter = mMessageCallbackMap.find(opcode);
 
-	if(iter != mMessageCallbackMap.end())
-	{
-		mMessageCallbackMap.erase(iter);
-	}
+    if(iter != mMessageCallbackMap.end())
+    {
+        mMessageCallbackMap.erase(iter);
+    }
 }
 
 //======================================================================================================================
 
 void ConnectionDispatch::handleIncomingMessage(ConnectionClient* client, Message* message)
 {
-	// Get our account id so we know who this is.
-	message->setIndex(0);
+    // Get our account id so we know who this is.
+    message->setIndex(0);
 
-	// What kind of message is it?
-	uint32 opcode;
-	message->getUint32(opcode);
+    // What kind of message is it?
+    uint32 opcode;
+    message->getUint32(opcode);
 
-	ConnectionMessageCallbackMap::iterator iter = mMessageCallbackMap.find(opcode);
+    ConnectionMessageCallbackMap::iterator iter = mMessageCallbackMap.find(opcode);
 
-	if(iter != mMessageCallbackMap.end())
-	{
-		// Reset our message index to just after the opcode.
-		message->setIndex(4);
+    if(iter != mMessageCallbackMap.end())
+    {
+        // Reset our message index to just after the opcode.
+        message->setIndex(4);
 
-		// Call our handler
-		(*iter).second->handleDispatchMessage(opcode, message, client);
-	}
-	else
-	{
-		gLogger->log(LogManager::NOTICE,"Unhandled opcode in ConnectionDispatch - 0x%x (%i)",opcode,opcode);
-	}
+        // Call our handler
+        (*iter).second->handleDispatchMessage(opcode, message, client);
+    }
+    else
+    {
+        LOG(INFO) << "Unhandled opcode in ConnectionDispatch - " << opcode;
+    }
 
-	// Delete our message
-	client->getSession()->DestroyIncomingMessage(message);
+    // Delete our message
+    client->getSession()->DestroyIncomingMessage(message);
 }
 
 //======================================================================================================================

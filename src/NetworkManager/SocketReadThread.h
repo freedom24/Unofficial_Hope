@@ -29,13 +29,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define ANH_NETWORKMANAGER_SOCKETREADTHREAD_H
 
 #include "Utils/typedefs.h"
-
+#include "NetworkConfig.h"
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <list>
 #include <map>
 
-	
 //======================================================================================================================
 
 class SocketWriteThread;
@@ -50,64 +49,70 @@ class Packet;
 //======================================================================================================================
 
 typedef std::list<Session*>			SessionList;
-typedef std::map<uint64,Session*>	AddressSessionMap;     
-				                                                                     
-typedef unsigned int SOCKET;                                      
+typedef std::map<uint64,Session*>	AddressSessionMap;
+
 
 //======================================================================================================================
 
 class NewConnection
 {
-	public:
+public:
 
-	  int8              mAddress[256];
-	  uint16            mPort;
-	  Session*          mSession;
+    int8              mAddress[256];
+    uint16            mPort;
+    Session*          mSession;
 };
 
 //======================================================================================================================
 
 class SocketReadThread
 {
-	public:
-									SocketReadThread(SOCKET socket, SocketWriteThread* writeThread, Service* service,uint32 mfHeapSize, bool serverservice);
-									~SocketReadThread();
+public:
+    SocketReadThread(SOCKET socket, SocketWriteThread* writeThread, Service* service,uint32 mfHeapSize, bool serverservice, NetworkConfig& network_configuration_);
+    ~SocketReadThread();
 
-	  virtual void					run();
+    virtual void					run();
 
-	  void                          NewOutgoingConnection(int8* address, uint16 port);
-	  void                          RemoveAndDestroySession(Session* session);
+    void                          NewOutgoingConnection(const int8* address, uint16 port);
+    void                          RemoveAndDestroySession(Session* session);
 
-	  NewConnection*                getNewConnectionInfo(void)  { return &mNewConnection; };
-	  bool                          getIsRunning(void)          { return mIsRunning; }
-	  void							requestExit()				{ mExit = true; }
+    NewConnection*                getNewConnectionInfo(void)  {
+        return &mNewConnection;
+    };
+    bool                          getIsRunning(void)          {
+        return mIsRunning;
+    }
+    void							requestExit()				{
+        mExit = true;
+    }
 
-	protected:
+protected:
 
-	  void                          _startup(void);
-	  void                          _shutdown(void);
+    void                          _startup(void);
+    void                          _shutdown(void);
 
-	  Packet*                       mReceivePacket;
-	  Packet*                       mDecompressPacket;
+    Packet*                       mReceivePacket;
+    Packet*                       mDecompressPacket;
 
-	  uint16						mMessageMaxSize;
-	  SocketWriteThread*            mSocketWriteThread;
-	  SessionFactory*               mSessionFactory;
-	  PacketFactory*                mPacketFactory;
-	  MessageFactory*               mMessageFactory;
-	  CompCryptor*                  mCompCryptor;
-	  NewConnection                 mNewConnection;
+    uint16						mMessageMaxSize;
+    SocketWriteThread*            mSocketWriteThread;
+    SessionFactory*               mSessionFactory;
+    PacketFactory*                mPacketFactory;
+    MessageFactory*               mMessageFactory;
+    CompCryptor*                  mCompCryptor;
+    NewConnection                 mNewConnection;
 
-	  SOCKET                        mSocket;
+    SOCKET                        mSocket;
 
-	  bool							mIsRunning;
+    bool							mIsRunning;
 
-	  uint32						mSessionResendWindowSize;
-      boost::thread 				mThread;
-      boost::mutex					mSocketReadMutex;
-	  AddressSessionMap             mAddressSessionMap;
-	  
-	  bool							mExit;
+    uint32						mSessionResendWindowSize;
+
+    boost::thread 				mThread;
+    boost::mutex					mSocketReadMutex;
+    AddressSessionMap             mAddressSessionMap;
+
+    bool							mExit;
 };
 
 //======================================================================================================================

@@ -30,10 +30,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "ObjectFactoryCallback.h"
 #include "DatabaseManager/DatabaseCallback.h"
-#include "Common/MessageDispatchCallback.h"
 
-#include <boost/thread/recursive_mutex.hpp>
 #include <glm/glm.hpp>
+#include <set>
 
 //======================================================================================================================
 
@@ -43,6 +42,9 @@ class MessageDispatch;
 class PlayerObject;
 
 //======================================================================================================================
+
+
+typedef std::set<uint64>				ObjectIDSet;
 
 enum CLHCallBack
 {
@@ -65,7 +67,7 @@ public:
 	CLHCallBack					callBack;
 };
 
-class CharacterLoginHandler : public MessageDispatchCallback,public ObjectFactoryCallback, public DatabaseCallback
+class CharacterLoginHandler : public ObjectFactoryCallback, public DatabaseCallback
 {
 	public:
 
@@ -75,14 +77,13 @@ class CharacterLoginHandler : public MessageDispatchCallback,public ObjectFactor
 		// DatabaseCallback
 		virtual void			handleDatabaseJobComplete(void* ref,DatabaseResult* result);
 
-		  // Inherited from MessageDispatchCallback
-		virtual void	handleDispatchMessage(uint32 opcode, Message* message, DispatchClient* client);
-
 		  // ObjectFactoryCallback
 		virtual void	handleObjectReady(Object* object,DispatchClient* client);
 
 	private:
-
+        void    _processCmdSceneReady(Message* message, DispatchClient* client);
+        void	_processSelectCharacter(Message* message, DispatchClient* client);
+        void	_processNewbieTutorialResponse(Message* message, DispatchClient* client);
 		void    _processClusterClientDisconnect(Message* message, DispatchClient* client);
 		void    _processClusterZoneTransferApprovedByTicket(Message* message, DispatchClient* client);
 		void    _processClusterZoneTransferApprovedByPosition(Message* message, DispatchClient* client);
@@ -92,13 +93,13 @@ class CharacterLoginHandler : public MessageDispatchCallback,public ObjectFactor
 		MessageDispatch*			mMessageDispatch;
 
 		uint32						mZoneId;
-        boost::recursive_mutex		mSessionMutex;
+        
+		ObjectIDSet					playerZoneList;
 };
 
 
 
 
 #endif // ANH_ZONESERVER_CHARACTERLOGINHANDLER_H
-
 
 

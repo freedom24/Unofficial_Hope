@@ -34,34 +34,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 //=============================================================================
 
-class ZoneTree;
 class PlayerObject;
-class QTRegion;
+
 
 //=============================================================================
 
 class City : public RegionObject
 {
-	friend class CityFactory;
+    friend class CityFactory;
 
-	public:
+public:
 
-		City();
-		virtual ~City();
+    City();
+    virtual ~City();
 
-		string			getCityName(){ return mCityName; }
-		void			setCityName(const string cityName){ mCityName = cityName; }
+    std::string			getCityName() {
+        return mCityName;
+    }
+    void			setCityName(const std::string cityName) {
+        mCityName = cityName;
+    }
 
-		virtual void	update();
-		virtual void	onObjectEnter(Object* object);
-		virtual void	onObjectLeave(Object* object);
+    virtual void	update();
+    virtual void	onObjectEnter(Object* object);
+    virtual void	onObjectLeave(Object* object);
 
-	protected:
+protected:
 
-		string				mCityName;
-		ZoneTree*			mSI;
-		QTRegion*			mQTRegion;
-		Anh_Math::Rectangle mQueryRect;
+    std::string				mCityName;
 };
 
 

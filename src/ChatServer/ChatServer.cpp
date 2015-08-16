@@ -25,10 +25,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
+#include "ChatServer.h"
 
+#include <iostream>
+#include <fstream>
+
+#include "Utils/logger.h"
 // External references
 #include "ChatManager.h"
-#include "ChatServer.h"
 #include "CSRManager.h"
 #include "GroupManager.h"
 #include "TradeManagerChat.h"
@@ -36,27 +40,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "CharacterAdminHandler.h"
 #include "PlanetMapHandler.h"
 
+#include "Common/BuildInfo.h"
+
 #include "NetworkManager/NetworkManager.h"
 #include "NetworkManager/Service.h"
-
-#include "LogManager/LogManager.h"
 
 #include "DatabaseManager/DataBinding.h"
 #include "DatabaseManager/Database.h"
 #include "DatabaseManager/DatabaseManager.h"
 #include "DatabaseManager/DatabaseResult.h"
 
-#include "Common/DispatchClient.h"
-#include "Common/MessageDispatch.h"
-#include "Common/MessageFactory.h"
-#include "ConfigManager/ConfigManager.h"
+#include "NetworkManager/DispatchClient.h"
+#include "NetworkManager/MessageDispatch.h"
+#include "NetworkManager/MessageFactory.h"
 
 #include "Utils/utils.h"
 #include "Utils/clock.h"
-
-#if !defined(_DEBUG) && defined(_WIN32)
-#include "Utils/mdump.h"
-#endif
 
 #include <boost/thread/thread.hpp>
 #include <cstring>
@@ -67,117 +66,145 @@ ChatServer* gChatServer;
 
 //======================================================================================================================
 
-ChatServer::ChatServer() : mNetworkManager(0),mDatabaseManager(0),mRouterService(0),mDatabase(0)
+ChatServer::ChatServer(int argc, char* argv[]) 
+	: BaseServer()
+	, mNetworkManager(0)
+	, mDatabaseManager(0)
+	, mRouterService(0)
+	, mDatabase(0)
+	, mLastHeartbeat(0)
 {
-	Anh_Utils::Clock::Init();
-	//gLogger->printSmallLogo();
-	gLogger->log(LogManager::CRITICAL,"Chat Server Startup");
+    Anh_Utils::Clock::Init();
+    LOG(WARNING) << "Chat Server Startup";
 
-	// Create and startup our core services.
-	mDatabaseManager = new DatabaseManager();
-
-	mNetworkManager = new NetworkManager();
-
-	// Connect to the DB and start listening for the RouterServer.
-	mDatabase = mDatabaseManager->Connect(DBTYPE_MYSQL,
-		(char*)(gConfig->read<std::string>("DBServer")).c_str(),
-		gConfig->read<int>("DBPort"),
-		(char*)(gConfig->read<std::string>("DBUser")).c_str(),
-		(char*)(gConfig->read<std::string>("DBPass")).c_str(),
-		(char*)(gConfig->read<std::string>("DBName")).c_str());
+	// Load Configuration Options
+	std::list<std::string> config_files;
+	config_files.push_back("config/general.cfg");
+	config_files.push_back("config/chatserver.cfg");
+	LoadOptions_(argc, argv, config_files);
 
 
-	mDatabase->ExecuteSqlAsync(0,0,"UPDATE config_process_list SET serverstartID = serverstartID+1 WHERE name like 'chat'");
+    // Create and startup our core services.
+	mDatabaseManager = new DatabaseManager(DatabaseConfig(configuration_variables_map_["DBMinThreads"].as<uint32_t>(), configuration_variables_map_["DBMaxThreads"].as<uint32_t>(), configuration_variables_map_["DBGlobalSchema"].as<std::string>(), configuration_variables_map_["DBGalaxySchema"].as<std::string>(), configuration_variables_map_["DBConfigSchema"].as<std::string>()));
 
-	mRouterService = mNetworkManager->GenerateService((char*)gConfig->read<std::string>("BindAddress").c_str(), gConfig->read<uint16>("BindPort"),gConfig->read<uint32>("ServiceMessageHeap")*1024,true);
+    // Startup our core modules
+	MessageFactory::getSingleton(configuration_variables_map_["GlobalMessageHeap"].as<uint32_t>());
 
-	// We need to register our IP and port in the DB so the connection server can connect to us.
-	// Status:  0=offline, 1=loading, 2=online
-	_updateDBServerList(1);
+	mNetworkManager = new NetworkManager( NetworkConfig(configuration_variables_map_["ReliablePacketSizeServerToServer"].as<uint16_t>(), 
+		configuration_variables_map_["UnreliablePacketSizeServerToServer"].as<uint16_t>(), 
+		configuration_variables_map_["ReliablePacketSizeServerToClient"].as<uint16_t>(), 
+		configuration_variables_map_["UnreliablePacketSizeServerToClient"].as<uint16_t>(), 
+		configuration_variables_map_["ServerPacketWindowSize"].as<uint32_t>(), 
+		configuration_variables_map_["ClientPacketWindowSize"].as<uint32_t>(),
+		configuration_variables_map_["UdpBufferSize"].as<uint32_t>()));
 
-	// Instant the messageFactory. It will also run the Startup ().
-	(void)MessageFactory::getSingleton();		// Use this a marker of where the factory is instanced. 
-												// The code itself here is not needed, since it will instance itself at first use.
+    // Connect to the DB and start listening for the RouterServer.
+    mDatabase = mDatabaseManager->connect(DBTYPE_MYSQL,
+                                          (char*)(configuration_variables_map_["DBServer"].as<std::string>()).c_str(),
+                                          configuration_variables_map_["DBPort"].as<uint16_t>(),
+                                          (char*)(configuration_variables_map_["DBUser"].as<std::string>()).c_str(),
+                                          (char*)(configuration_variables_map_["DBPass"].as<std::string>()).c_str(),
+                                          (char*)(configuration_variables_map_["DBName"].as<std::string>()).c_str());
 
-	// Connect to the ConnectionServer;
-	_connectToConnectionServer();
+    mDatabase->executeProcedureAsync(0, 0, "CALL %s.sp_ServerStatusUpdate('chat', NULL, NULL, NULL);",mDatabase->galaxy());
 
-	// Place all startup code here.
-	mMessageDispatch = new MessageDispatch(mRouterService);
+    mRouterService = mNetworkManager->GenerateService((char*)configuration_variables_map_["BindAddress"].as<std::string>().c_str(), configuration_variables_map_["BindPort"].as<uint16_t>(),configuration_variables_map_["ServiceMessageHeap"].as<uint32_t>()*1024, true);
 
-	// load up our ChatManager
-	mChatManager = ChatManager::Init(mDatabase,mMessageDispatch);
-	mTradeManagerChatHandler = TradeManagerChatHandler::Init(mDatabase,mMessageDispatch,mChatManager);
-	mStructureManagerChatHandler = StructureManagerChatHandler::Init(mDatabase,mMessageDispatch,mChatManager);
-	mCSRManager = CSRManager::Init(mDatabase, mMessageDispatch, mChatManager);
+    // We need to register our IP and port in the DB so the connection server can connect to us.
+    // Status:  0=offline, 1=loading, 2=online
+    _updateDBServerList(1);
 
-	// load up GroupManager
-	mGroupManager = GroupManager::Init(mMessageDispatch);
+    // Instant the messageFactory. It will also run the Startup ().
+    (void)MessageFactory::getSingleton();		// Use this a marker of where the factory is instanced.
+    // The code itself here is not needed, since it will instance itself at first use.
 
-	mCharacterAdminHandler = new CharacterAdminHandler(mDatabase, mMessageDispatch);  
-  
-	mPlanetMapHandler = new PlanetMapHandler(mDatabase,mMessageDispatch);
+    // Connect to the ConnectionServer;
+    _connectToConnectionServer();
 
-	ChatMessageLib::Init(mClient);
+    // Place all startup code here.
+    mMessageDispatch = new MessageDispatch(mRouterService);
 
-	// We're done initializing.
-	_updateDBServerList(2);
+    // load up our ChatManager
+    mChatManager = ChatManager::Init(mDatabase,mMessageDispatch);
+    mTradeManagerChatHandler = TradeManagerChatHandler::Init(mDatabase,mMessageDispatch,mChatManager);
+    mStructureManagerChatHandler = StructureManagerChatHandler::Init(mDatabase,mMessageDispatch,mChatManager);
+    mCSRManager = CSRManager::Init(mDatabase, mMessageDispatch, mChatManager);
 
-	gLogger->log(LogManager::CRITICAL,"Chat Server startup complete");
-	//gLogger->printLogo();
-	// std::string BuildString(GetBuildString());
+    // load up GroupManager
+    mGroupManager = GroupManager::Init(mMessageDispatch);
 
-	gLogger->log(LogManager::INFORMATION,"Chat Server - Build %s",ConfigManager::getBuildString().c_str());
-	gLogger->log(LogManager::CRITICAL,"Welcome to your SWGANH Experience!");
+    mCharacterAdminHandler = new CharacterAdminHandler(mDatabase, mMessageDispatch);
+
+    mPlanetMapHandler = new PlanetMapHandler(mDatabase,mMessageDispatch);
+
+    ChatMessageLib::Init(mClient);
+
+    // We're done initializing.
+    _updateDBServerList(2);
+
+    LOG(WARNING) << "Chat Server startup complete";
+    //gLogger->printLogo();
+    // std::string BuildString(GetBuildString());
+
+    LOG(WARNING) << "Chat Server - Build " << GetBuildString().c_str();
+    LOG(WARNING) << "Welcome to your SWGANH Experience!";
 }
 
 //======================================================================================================================
 
 ChatServer::~ChatServer()
 {
-	gLogger->log(LogManager::CRITICAL,"ChatServer shutting down...");
+    LOG(WARNING) << "ChatServer shutting down...";
 
-	// We're shutting down, so update the DB again.
-	_updateDBServerList(0);
+    // We're shutting down, so update the DB again.
+    _updateDBServerList(0);
 
-	// Shutdown the various handlers
-	delete mCharacterAdminHandler;
-	
-	delete mPlanetMapHandler;
+    // Shutdown the various handlers
+    delete mCharacterAdminHandler;
 
-	delete (mChatManager);
-	delete (mCSRManager);
-	mTradeManagerChatHandler->Shutdown();
-	delete (mTradeManagerChatHandler);
+    delete mPlanetMapHandler;
 
-	delete mMessageDispatch;
+    delete (mChatManager);
+    delete (mCSRManager);
+    mTradeManagerChatHandler->Shutdown();
+    delete (mTradeManagerChatHandler);
 
-	// Shutdown and delete our core services.
-	mNetworkManager->DestroyService(mRouterService);
-	delete mNetworkManager;
+    delete mMessageDispatch;
 
-	MessageFactory::getSingleton()->destroySingleton();	// Delete message factory and call shutdown();
+    // Shutdown and delete our core services.
+    mNetworkManager->DestroyService(mRouterService);
+    delete mNetworkManager;
 
-	delete mDatabaseManager;
+    MessageFactory::getSingleton()->destroySingleton();	// Delete message factory and call shutdown();
 
-	gLogger->log(LogManager::CRITICAL,"ChatServer Shutdown Complete");
+    delete mDatabaseManager;
+
+    LOG(WARNING) << "ChatServer Shutdown Complete";
 }
 
 //======================================================================================================================
 
 void ChatServer::Process()
 {
-	// Process our game modules
-	mMessageDispatch->Process();
-	gMessageFactory->Process();
+    // Process our game modules
+    mMessageDispatch->Process();
+    gMessageFactory->Process();
 
-	//  Process our core services
-	mDatabaseManager->Process();
-	mNetworkManager->Process();
-	mCharacterAdminHandler->Process();
-	mPlanetMapHandler->Process();
-	mTradeManagerChatHandler->Process();
-	mStructureManagerChatHandler->Process();
+    //  Process our core services
+    mDatabaseManager->process();
+    mNetworkManager->Process();
+    mCharacterAdminHandler->Process();
+    mPlanetMapHandler->Process();
+    mTradeManagerChatHandler->Process();
+    mStructureManagerChatHandler->Process();
+
+
+    // Heartbeat once in awhile
+    if (Anh_Utils::Clock::getSingleton()->getLocalTime() - mLastHeartbeat > 180000)//main loop every 10ms
+    {
+        mLastHeartbeat = static_cast<uint32>(Anh_Utils::Clock::getSingleton()->getLocalTime());
+        DLOG(INFO) << "ChatServer Heartbeat.";
+    }
 }
 
 
@@ -185,97 +212,92 @@ void ChatServer::Process()
 
 void ChatServer::_updateDBServerList(uint32 status)
 {
-  // Update the DB with our status.  This must be synchronous as the connection server relies on this data.
-	mDatabase->DestroyResult(mDatabase->ExecuteSynchSql("UPDATE config_process_list SET address='%s', port=%u, status=%u WHERE name='chat';", mRouterService->getLocalAddress(), mRouterService->getLocalPort(), status));
+    // Update the DB with our status.  This must be synchronous as the connection server relies on this data.
+    mDatabase->executeProcedureAsync(0, 0, "CALL %s.sp_ServerStatusUpdate('chat', %u, '%s', %u);", mDatabase->galaxy(),  status, mRouterService->getLocalAddress(), mRouterService->getLocalPort()); // SQL - Update server status
+ 
 }
 
 //======================================================================================================================
 
 void ChatServer::_connectToConnectionServer()
 {
-	ProcessAddress processAddress;
-	memset(&processAddress, 0, sizeof(ProcessAddress));
+    ProcessAddress processAddress;
+    memset(&processAddress, 0, sizeof(ProcessAddress));
 
-	// Query the DB to find out who this is.
-	// setup our databinding parameters.
-	DataBinding* binding = mDatabase->CreateDataBinding(5);
-	binding->addField(DFT_uint32, offsetof(ProcessAddress, mType), 4);
-	binding->addField(DFT_string, offsetof(ProcessAddress, mAddress), 1);
-	binding->addField(DFT_uint16, offsetof(ProcessAddress, mPort), 2);
-	binding->addField(DFT_uint32, offsetof(ProcessAddress, mStatus), 4);
-	binding->addField(DFT_uint32, offsetof(ProcessAddress, mActive), 4);
+    // Query the DB to find out who this is.
+    // setup our databinding parameters.
+    DataBinding* binding = mDatabase->createDataBinding(5);
+    binding->addField(DFT_uint32, offsetof(ProcessAddress, mType), 4);
+    binding->addField(DFT_bstring, offsetof(ProcessAddress, mAddress), 16);
+    binding->addField(DFT_uint16, offsetof(ProcessAddress, mPort), 2);
+    binding->addField(DFT_uint32, offsetof(ProcessAddress, mStatus), 4);
+    binding->addField(DFT_uint32, offsetof(ProcessAddress, mActive), 4);
 
-	// Setup our statement
-	DatabaseResult* result = mDatabase->ExecuteSynchSql("SELECT id, address, port, status, active FROM config_process_list WHERE name='connection';");
-  uint64 count = result->getRowCount();
+    // Setup our statement
+    DatabaseResult* result = mDatabase->executeSynchSql("SELECT id, address, port, status, active FROM %s.config_process_list WHERE name='connection';",mDatabase->galaxy());
+    
+    uint64 count = result->getRowCount();
 
-	// If we found them
-	if (count == 1)
-	{
-		// Retrieve our routes and add them to the map.
-		result->GetNextRow(binding, &processAddress);
-	}
+    // If we found them
+    if (count == 1)
+    {
+        // Retrieve our routes and add them to the map.
+        result->getNextRow(binding, &processAddress);
+    }
 
-	// Delete our DB objects.
-	mDatabase->DestroyDataBinding(binding);
-	mDatabase->DestroyResult(result);
+    // Delete our DB objects.
+    mDatabase->destroyDataBinding(binding);
+    mDatabase->destroyResult(result);
 
-	// Now connect to the ConnectionServer
-	mClient = new DispatchClient();
-	mRouterService->Connect(mClient, processAddress.mAddress, processAddress.mPort);
+    // Now connect to the ConnectionServer
+    mClient = new DispatchClient();
+
+	LOG(INFO) << "New connection to " << processAddress.mAddress.getAnsi() << " on port " << processAddress.mPort;
+    mRouterService->Connect(mClient, processAddress.mAddress.getAnsi(), processAddress.mPort);
 }
 
 //======================================================================================================================
 
 void handleExit()
 {
-	delete gChatServer;
+    delete gChatServer;
 }
 
 //======================================================================================================================
 
 int main(int argc, char* argv[])
 {
-	// In release mode, catch any unhandled exceptions that may cause the program to crash and create a dump report.
-#if !defined(_DEBUG) && defined(_WIN32)
-	SetUnhandledExceptionFilter(CreateMiniDump);
-#endif
+    bool exit = false;
+	
+	try {
+		gChatServer = new ChatServer(argc, argv);
 
-	bool exit = false;
+		// Since startup completed successfully, now set the atexit().  Otherwise we try to gracefully shutdown a failed startup, which usually fails anyway.
+		//atexit(handleExit);
 
-	LogManager::Init();
-	gLogger->setupConsoleLogging((LogManager::LOG_PRIORITY)1);
-
-	ConfigManager::Init("ChatServer.cfg");
-
-	gLogger->setupConsoleLogging((LogManager::LOG_PRIORITY)gConfig->read<int>("ConsoleLog_MinPriority"));
-	gLogger->setupFileLogging((LogManager::LOG_PRIORITY)gConfig->read<int>("FileLog_MinPriority"), gConfig->read<std::string>("FileLog_Name"));
-
-	gChatServer = new ChatServer();
-
-  // Since startup completed successfully, now set the atexit().  Otherwise we try to gracefully shutdown a failed startup, which usually fails anyway.
-  //atexit(handleExit);
-
-	// Main loop
-	while (!exit)
-	{
-		gChatServer->Process();
-
-		if(Anh_Utils::kbhit())
+		// Main loop
+		while (!exit)
 		{
-			if(std::cin.get() == 'q')
-				break;
+			gChatServer->Process();
+
+			if(Anh_Utils::kbhit())
+			{
+				if(std::cin.get() == 'q')
+					break;
+			}
+
+			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 		}
 
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+		// Shutdown things
+		delete gChatServer;
+	} catch(std::exception& e) {
+		std::cout << e.what() << std::endl;
+		std::cin.get();
+		return 0;
 	}
 
-	// Shutdown things
-	delete gChatServer;
-
-	delete ConfigManager::getSingletonPtr();
-
-	return 0;
+    return 0;
 }
 
 

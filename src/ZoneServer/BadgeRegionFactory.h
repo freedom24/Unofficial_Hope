@@ -30,21 +30,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "FactoryBase.h"
 
-#define	 gBadgeRegionFactory	BadgeRegionFactory::getSingletonPtr()
-
-//=============================================================================
 
 class BadgeRegion;
 class Database;
-class DataBinding;
 class DispatchClient;
-class ObjectFactoryCallback;
 
 //=============================================================================
 
 enum BadgeFQuery
 {
-	BadgeFQuery_MainData	= 1
+    BadgeFQuery_MainData	= 1
 };
 
 //=============================================================================
@@ -52,28 +47,10 @@ enum BadgeFQuery
 class BadgeRegionFactory : public FactoryBase
 {
 public:
-
-	static BadgeRegionFactory*	getSingletonPtr() { return mSingleton; }
-	static BadgeRegionFactory*	Init(Database* database);
-
-	~BadgeRegionFactory();
-
-	void			handleDatabaseJobComplete(void* ref,DatabaseResult* result);
-	void			requestObject(ObjectFactoryCallback* ofCallback,uint64 id,uint16 subGroup,uint16 subType,DispatchClient* client);
-
-private:
-
-	BadgeRegionFactory(Database* database);
-
-	void				_setupDatabindings();
-	void				_destroyDatabindings();
-
-	BadgeRegion*		_createBadgeRegion(DatabaseResult* result);
-
-	static BadgeRegionFactory*		mSingleton;
-	static bool						mInsFlag;
-
-	DataBinding*					mBadgeRegionBinding;
+    BadgeRegionFactory(Database* database);
+    ~BadgeRegionFactory();
+    void			handleDatabaseJobComplete(void* ref,DatabaseResult* result);
+    void			requestObject(ObjectFactoryCallback* ofCallback,uint64 id,uint16 subGroup,uint16 subType,DispatchClient* client);  
 };
 
 //=============================================================================

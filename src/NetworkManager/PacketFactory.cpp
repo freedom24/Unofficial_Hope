@@ -27,20 +27,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "PacketFactory.h"
 #include "Packet.h"
-#include "NetConfig.h"
 
 
 //======================================================================================================================
 
-PacketFactory::PacketFactory(bool serverservice)
-: mPacketPool(sizeof(Packet))
+PacketFactory::PacketFactory(bool serverservice, NetworkConfig& network_configuration)
+    : mPacketPool(sizeof(Packet))
 {
-	mPacketCount = 0;
+    mPacketCount = 0;
 
-	if(serverservice)
-		mMaxPayLoad = gNetConfig->getServerServerReliableSize();
-	else
-		mMaxPayLoad = gNetConfig->getServerClientReliableSize();
+    if(serverservice)
+        mMaxPayLoad = network_configuration.getServerToServerReliableSize();
+    else
+        mMaxPayLoad = network_configuration.getServerToClientReliableSize();
 }
 
 
@@ -48,18 +47,18 @@ PacketFactory::PacketFactory(bool serverservice)
 
 PacketFactory::~PacketFactory(void)
 {
-	// Destory our clock
-	// delete mClock;
+    // Destory our clock
+    // delete mClock;
 
-	mPacketPool.purge_memory();
+    mPacketPool.purge_memory();
 }
 
 //======================================================================================================================
 
 void PacketFactory::Process(void)
 {
-	// Update our clock
-	// mClock->Update();
+    // Update our clock
+    // mClock->Update();
 }
 
 
@@ -68,25 +67,25 @@ void PacketFactory::Process(void)
 Packet* PacketFactory::CreatePacket(void)
 {
 
-	boost::recursive_mutex::scoped_lock lk(mPacketFactoryMutex);
-	Packet* newPacket = new(mPacketPool.malloc()) Packet();
+    boost::recursive_mutex::scoped_lock lk(mPacketFactoryMutex);
+    Packet* newPacket = new(mPacketPool.malloc()) Packet();
 
-	newPacket->setTimeCreated(Anh_Utils::Clock::getSingleton()->getStoredTime());
-	newPacket->setMaxPayload(mMaxPayLoad);
+    newPacket->setTimeCreated(Anh_Utils::Clock::getSingleton()->getStoredTime());
+    newPacket->setMaxPayload(mMaxPayLoad);
 
-	mPacketCount++;
+    mPacketCount++;
 
-	return newPacket;
+    return newPacket;
 }
 
 //======================================================================================================================
 
 void PacketFactory::DestroyPacket(Packet* packet)
 {
-	boost::recursive_mutex::scoped_lock lk(mPacketFactoryMutex);
-	
-	mPacketPool.free(packet);
-	mPacketCount--;
+    boost::recursive_mutex::scoped_lock lk(mPacketFactoryMutex);
+
+    mPacketPool.free(packet);
+    mPacketCount--;
 }
 
 //======================================================================================================================

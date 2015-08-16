@@ -100,10 +100,9 @@ Project Base: %PROJECT_BASE%
 :ShortMenu
 	CLS
 	ECHO. ----------------------------------------------------------------------
-	ECHO.  SWGANH Database Install Script                              (v.0.02)
+	ECHO.  SWGANH Database Install Script                              (v.0.03)
 	ECHO. ----------------------------------------------------------------------
 	ECHO.  DB IP: %db_host%     DB Username: %db_user%    DB Password: %db_pass%
-	ECHO.  Project Base : %PROJECT_BASE%    ^|
 	ECHO. ----------------------------------------------------------------------
 	ECHO.
 	ECHO.
@@ -112,10 +111,9 @@ Project Base: %PROJECT_BASE%
 :MainMenu
 	CLS
 	ECHO. ----------------------------------------------------------------------
-	ECHO.  SWGANH Database Install Script                              (v.0.02)
+	ECHO.  SWGANH Database Install Script                              (v.0.03)
 	ECHO. ----------------------------------------------------------------------
 	ECHO.  DB IP: %db_host%     DB Username: %db_user%    DB Password: %db_pass%
-	ECHO.  Project Base : %PROJECT_BASE%    ^|
 	ECHO. ----------------------------------------------------------------------
 	ECHO.                                   ^|
 	ECHO.           Database Setup          ^|       Database Maintenance

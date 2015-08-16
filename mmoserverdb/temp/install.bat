@@ -30,11 +30,11 @@ MODE con:cols=72 lines=38
 SET db_user=----
 SET db_pass=----
 SET db_host=----
-SET PROJECT_BASE=----
+
 :: Set the window title 
 SET title=%~n0
 TITLE %title%
-::Project Base: %PROJECT_BASE%
+
 ::
 :: Start
 ::
@@ -182,38 +182,9 @@ GOTO:MainMenu
 
 :DatabaseCompleteSetup 
 	call:ShortMenu
-	::cd Create Scripts
-	::mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-	::mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "swganh_logs.sql"
-	cd "%PROJECT_BASE%swganh"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create_users.sql"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_archive"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_astromech"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_config"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_logs"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%"
-		cd "%PROJECT_BASE%swganh"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh\scripts"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh\functions"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh\procedures"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
+	cd Create Scripts
+	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
+	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "swganh_logs.sql"
 	TITLE %title%
 	ECHO.
 	ECHO.
@@ -667,8 +638,6 @@ ECHO.
 SET /P db_host=Please enter the IP / hostname of the database: 
 SET /P db_user=Please enter the username with root access: 
 SET /P db_pass=Please enter the password for the user: 
-SET /P PROJECT_BASE=Please enter the mmoserverdb dir: 
-
 GOTO:MainMenu
 
 :sleep -? waits some seconds before returning

@@ -3,7 +3,7 @@
 -- Note: comments before and after the routine body will not be stored by the server
 -- --------------------------------------------------------------------------------
 DELIMITER $$
-
+use swganh;
 CREATE DEFINER=`root`@`localhost` FUNCTION `sf_DefaultHarvesterUpdateDeed`(parent_id BIGINT(20), owner_id BIGINT(20)) RETURNS bigint(20)
 BEGIN
 

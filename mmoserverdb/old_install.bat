@@ -31,32 +31,23 @@ SET db_user=----
 SET db_pass=----
 SET db_host=----
 
-SET "PROJECT_BASE=%~dp0"
-
-::SET PROJECT_BASE=----
 :: Set the window title 
 SET title=%~n0
 TITLE %title%
-Project Base: %PROJECT_BASE%
+
 ::
 :: Start
 ::
 
 @ECHO OFF
 	call:ScreenIntro
-	CALL :READ_CFG
-	::call:Setup
+	call:Setup
 	call:MainMenu
 
 	::
 	:: Functions
 	::
-:READ_CFG
-	FOR /F "tokens=2 delims==" %%a IN ('find "username" ^< setup.cfg') DO SET db_user=%%a
-	FOR /F "tokens=2 delims==" %%a IN ('find "password" ^< setup.cfg') DO SET db_pass=%%a
-	FOR /F "tokens=2 delims==" %%a IN ('find "host" ^< setup.cfg') DO SET db_host=%%a
-	
-	GOTO :EOF
+
 :ScreenIntro
 	CLS
 	ECHO.
@@ -91,8 +82,8 @@ Project Base: %PROJECT_BASE%
 	ECHO.                M00000000NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
 	ECHO.                M88888888888888888888888888888888888888N
 	ECHO.
-	ECHO.                     SWG:ANH ^| Database Installer ^&
-	ECHO.                             ^| Administration tool
+	ECHO.                     SWG:ANH - Database Installer
+	ECHO.
 	ECHO.
 	CALL:sleep 5
 	GOTO:EOF
@@ -103,7 +94,6 @@ Project Base: %PROJECT_BASE%
 	ECHO.  SWGANH Database Install Script                              (v.0.02)
 	ECHO. ----------------------------------------------------------------------
 	ECHO.  DB IP: %db_host%     DB Username: %db_user%    DB Password: %db_pass%
-	ECHO.  Project Base : %PROJECT_BASE%    ^|
 	ECHO. ----------------------------------------------------------------------
 	ECHO.
 	ECHO.
@@ -115,18 +105,17 @@ Project Base: %PROJECT_BASE%
 	ECHO.  SWGANH Database Install Script                              (v.0.02)
 	ECHO. ----------------------------------------------------------------------
 	ECHO.  DB IP: %db_host%     DB Username: %db_user%    DB Password: %db_pass%
-	ECHO.  Project Base : %PROJECT_BASE%    ^|
 	ECHO. ----------------------------------------------------------------------
 	ECHO.                                   ^|
 	ECHO.           Database Setup          ^|       Database Maintenance
 	ECHO.                                   ^|
 	ECHO.   (1) Complete DB Install         ^|  (a) Complete Database Backup
-	ECHO.   (2) Setup Databases ^& Users     ^|  (b) Check DB Version
-	ECHO.   (3) Setup Main Database         ^|  (c) Shift Resources
+	ECHO.   (2) Setup Databases ^& Users     ^|  (b) Main Database Backup
+	ECHO.   (3) Setup Main Database         ^|  (c) AstroMech Database Backup
 	ECHO.   (4) Setup Stored Procedures     ^|  (d) Remove Databases
 	ECHO.   (5) Setup Stored Functions      ^| 
-	ECHO.   (6) Setup tools                 ^|  
-	ECHO.                                   ^|          Script Settings
+	ECHO.                                   ^|  
+	ECHO.   (6) Setup Admin Scripts         ^|          Script Settings
 	ECHO.   (7) Setup AstroMech Scripts     ^|
 	ECHO.                                   ^|  (e) Username Change
 	ECHO.        Server Configuration       ^|  (f) Password Change
@@ -134,8 +123,8 @@ Project Base: %PROJECT_BASE%
 	ECHO.   (8) Generate Resources          ^|
 	ECHO.   (9) Generate Bots               ^|               Help
 	ECHO.   (0) Reset GlobalTimer           ^|
-	ECHO.   (m) Change / Set MotD           ^|  (h) Help
-	ECHO.   (i) Change galaxy address       ^|  (s) Stats
+	ECHO.   (,) Change / Set MotD           ^|  (h) Help
+	ECHO.                                   ^|  (s) Stats
 	ECHO.                                   ^|
 	ECHO.                                   ^|
 	ECHO.                                   ^|
@@ -157,7 +146,7 @@ IF /I '%Choice%'=='4' GOTO :ProcedureSetup
 
 IF /I '%Choice%'=='5' GOTO :FunctionSetup
 
-IF /I '%Choice%'=='6' GOTO :ToolsSetup
+IF /I '%Choice%'=='6' GOTO :AdminScriptSetup
 
 IF /I '%Choice%'=='7' GOTO :AstroMechSetup
 
@@ -167,15 +156,13 @@ IF /I '%Choice%'=='9' GOTO :GenerateBots
 
 IF /I '%Choice%'=='0' GOTO :ResetGlobalTimer
 
-IF /I '%Choice%'=='m' GOTO :SetMOTD
-
-If /I '%Choice%'=='i' GOTO :ChangeServerIP
+IF /I '%Choice%'==',' GOTO :SetMOTD
 
 IF /I '%Choice%'=='a' GOTO :CompleteBackup 
 
-IF /I '%Choice%'=='b' GOTO :CHECKDBVERSION
+IF /I '%Choice%'=='b' GOTO :SchemaBackup
 
-IF /I '%Choice%'=='c' GOTO :SHIFT_RESOURCES
+IF /I '%Choice%'=='c' GOTO :AstroMechBackup
 
 IF /I '%Choice%'=='d' GOTO :DatabaseRemove
 
@@ -195,23 +182,9 @@ GOTO:MainMenu
 
 :DatabaseCompleteSetup 
 	call:ShortMenu
-  
-	cd "%PROJECT_BASE%swganh"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create_users.sql"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_archive"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_astromech"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_config"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_logs"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%"
-		cd "%PROJECT_BASE%swganh_tools"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-				)
-				
+	cd Create Scripts
+	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
+	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "swganh_logs.sql"
 	TITLE %title%
 	ECHO.
 	ECHO.
@@ -225,27 +198,18 @@ GOTO:MainMenu
 	:: Load Main Schema
 	
 	call:ShortMenu
-	cd "%PROJECT_BASE%swganh\scripts"
+	cd Server Scripts
 	call:GetFileCount
 	ECHO.                Starting installation for %maxcnt% files...
 	ECHO.
 	ECHO.
-	
-		
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh\functions"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh\procedures"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
+	call:initProgress %maxcnt%
+
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+		ECHO.Installing %%A [Done]
+		call:doProgress
+	)
 	
 	call:sleep 2
 	TITLE %title%
@@ -262,81 +226,22 @@ GOTO:MainMenu
 	:: Load SPs
 	
 	call:ShortMenu
-	cd "%PROJECT_BASE%swganh_archive\scripts"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_archive\functions"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_archive\procedures"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%"				
+	cd Server Scripts
+	cd Procedures
+	call:GetFileCount
+	ECHO.                Starting installation for %maxcnt% files...
+	ECHO.
+	ECHO.
+	call:initProgress %maxcnt%
+	
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+		ECHO.Installing %%A [Done]
+		call:doProgress
 	)
-	cd "%PROJECT_BASE%swganh_astromech\scripts"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_astromech\functions"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_astromech\procedures"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%"				
-	)
-	cd "%PROJECT_BASE%swganh_config\scripts"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_config\functions"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_config\procedures"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%"				
-	)
-	cd "%PROJECT_BASE%swganh_logs\scripts"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_logs\functions"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_logs\procedures"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%"				
-	)
-	cd "%PROJECT_BASE%swganh_tools\scripts"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%"				
-	)
+	
+	cd ..
+	cd ..
 	call:sleep 2
 	TITLE %title%
 	call:ShortMenu
@@ -348,6 +253,37 @@ GOTO:MainMenu
 	ECHO.                            [Please Wait]
 	call:sleep 5
 	
+	:: Load Stored Functions
+	
+	call:ShortMenu
+	cd Server Scripts
+	cd Functions
+	call:GetFileCount
+	ECHO.                Starting installation for %maxcnt% files...
+	ECHO.
+	ECHO.
+	call:initProgress %maxcnt%
+	
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+		ECHO.Installing %%A [Done]
+		call:doProgress
+	)
+
+	cd ..
+	cd ..
+	call:sleep 2
+	TITLE %title%
+	call:ShortMenu
+	ECHO.
+	ECHO.
+	ECHO.
+	ECHO.                        Stored Functions Loaded
+	ECHO.
+	ECHO.                            [Please Wait]
+	call:sleep 5
+	
+	:: Complete
 	
 	
 	call:ShortMenu
@@ -362,21 +298,10 @@ GOTO:MainMenu
 	
 :DatabaseSetup 
 	call:ShortMenu
-	call:initProgress %maxcnt%
-	cd "%PROJECT_BASE%swganh"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create_users.sql"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_archive"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_astromech"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_config"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%swganh_logs"
-		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-		cd "%PROJECT_BASE%"
-		
-	call:doProgress
+	cd Create Scripts
+	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
+	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "swganh_logs.sql"
+	TITLE %title%
 	call:ScreenClear
 	call:ShortMenu
 	ECHO.
@@ -389,20 +314,16 @@ GOTO:MainMenu
 	
 :SchemaSetup
 	call:ShortMenu
-	cd "%PROJECT_BASE%swganh"
+	cd Server Scripts
 	call:GetFileCount
 	ECHO.                Starting installation for %maxcnt% files...
 	ECHO.
 	ECHO.
 	call:initProgress %maxcnt%
-cd "%PROJECT_BASE%swganh\scripts"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-	cd "%PROJECT_BASE%"				
 
-	
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+		ECHO.Installing %%A [Done]
 		call:doProgress
 	)
 	
@@ -419,45 +340,19 @@ cd "%PROJECT_BASE%swganh\scripts"
 	
 :ProcedureSetup
 	call:ShortMenu
-	cd "%PROJECT_BASE%"
-	
+	cd Server Scripts
+	cd Procedures
 	call:GetFileCount
 	ECHO.                Starting installation for %maxcnt% files...
 	ECHO.
 	ECHO.
 	call:initProgress %maxcnt%
-			
-		
-		cd "%PROJECT_BASE%swganh\procedures"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		
-		::cd "%PROJECT_BASE%swganh_archive\procedures"
-		::for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-		::mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		::ECHO. Installing %%A [Done]
-		::)
-		
-		cd "%PROJECT_BASE%swganh_astromech\procedures"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
 	
-		cd "%PROJECT_BASE%swganh_config\procedures"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-
-		::cd "%PROJECT_BASE%swganh_logs\procedures"
-		::for /F %%A IN ('dir /b "*.sql"') do (
-		::mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		::ECHO. Installing %%A [Done]
-		::call:doProgress
-		::)
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+		ECHO.Installing %%A [Done]
+		call:doProgress
+	)
 	
 	cd ..
 	cd ..
@@ -473,44 +368,19 @@ cd "%PROJECT_BASE%swganh\scripts"
 	
 :FunctionSetup
 	call:ShortMenu
-	cd "%PROJECT_BASE%
-		call:GetFileCount
+	cd Server Scripts
+	cd Functions
+	call:GetFileCount
 	ECHO.                Starting installation for %maxcnt% files...
 	ECHO.
 	ECHO.
-	call:sleep 2
 	call:initProgress %maxcnt%
-	cd "%PROJECT_BASE%swganh\functions"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		
-		::cd "%PROJECT_BASE%swganh_archive\functions"
-		::for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-		::	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		::ECHO. Installing %%A [Done]
-		::)
-		
-		cd "%PROJECT_BASE%swganh_astromech\functions"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		
-		::cd "%PROJECT_BASE%swganh_config\functions"
-		::for /F %%A IN ('dir /b "*.sql"') do (
-		::	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		::ECHO. Installing %%A [Done]
-		::)
-		
-		::cd "%PROJECT_BASE%swganh_logs\functions"
-		::for /F %%A IN ('dir /b "*.sql"') do (
-		::	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		::ECHO. Installing %%A [Done]
-		::)
+	
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+		ECHO.Installing %%A [Done]
 		call:doProgress
-
+	)
 
 	cd ..
 	cd ..
@@ -524,20 +394,17 @@ cd "%PROJECT_BASE%swganh\scripts"
 	call:sleep 5
 	GOTO:MainMenu
 	
-:ToolsSetup
+:AdminScriptSetup
 	call:ShortMenu
-	cd "%PROJECT_BASE%swganh_tools"
+	cd AdminScripts
 	call:GetFileCount
 	ECHO.                Starting installation for %maxcnt% files...
 	ECHO.
 	ECHO.
 	call:initProgress %maxcnt%
-	cd "%PROJECT_BASE%swganh_tools"
-      mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "create.sql"
-				)
-				cd scripts"
-    for /F %%A IN ('dir /b "*.sql"') do (
-      mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+	
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
 		ECHO. Installing %%A [Done]
 		call:doProgress
 	)
@@ -549,36 +416,22 @@ cd "%PROJECT_BASE%swganh\scripts"
 	ECHO.
 	ECHO.
 	ECHO.
-	ECHO.                    Tool Scripts Load Complete
+	ECHO.                    Admin Scripts Load Complete
 	call:sleep 5
 	GOTO:MainMenu
 
 :AstroMechSetup
 	call:ShortMenu
-	cd "%PROJECT_BASE%swganh_astromech"
+	cd AstroMech Scripts
 	call:GetFileCount
 	ECHO.                Starting installation for %maxcnt% files...
 	ECHO.
 	ECHO.
 	call:initProgress %maxcnt%
 	
-	cd "%PROJECT_BASE%swganh_astromech\scripts"
-		for /F %%A IN ('dir /b "*.sql" ^| sort') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
+	for /F %%A IN ('dir /b "*.sql"') do (
+		mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
 		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_astromech\functions"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%swganh_astromech\procedures"
-		for /F %%A IN ('dir /b "*.sql"') do (
-			mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 < "%%A"
-		ECHO. Installing %%A [Done]
-		)
-		cd "%PROJECT_BASE%"				
-	)
 		call:doProgress
 	)
 	
@@ -606,10 +459,10 @@ cd "%PROJECT_BASE%swganh\scripts"
 
 :GenerateBots
 	call:ShortMenu
-	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 --database=swganh --execute="CALL sp_CreateSWGANHBots(20, 001, '');"
+	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 --database=swganh --execute="CALL sp_CreateSWGANHBots(100);"
 	ECHO.
 	ECHO.
-	ECHO.          20 bots and their accounts have been generated in bestine.
+	ECHO.          100 bots and their accounts have been generated.
 	ECHO.
 	ECHO.
 	call:sleep 5
@@ -639,44 +492,10 @@ cd "%PROJECT_BASE%swganh\scripts"
 	ECHO.
 	call:sleep 5
 	GOTO:MainMenu
-:ChangeServerIP
- call:shortMenu
- SET /P address=Enter new IP address: 
- mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 --database=swganh --execute="UPDATE galaxy SET address ='%address%';"
- ECHO.
-	ECHO.
-	ECHO.                  The new server IP address is:
-	ECHO.
-	ECHO.  %address%
-	ECHO.
-	call:sleep 5
-	GOTO:MainMenu
+	
 :CompleteBackup
 	call:ShortMenu
-	mkdir backup
-	cd backup
-	ECHO.
-	ECHO.
-	ECHO.
-	ECHO.
-	ECHO.
-	ECHO.
-	ECHO.
-	ECHO.
-	ECHO.                   Backing up the swganh database
-	
-    mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh --create-options --extended-insert --routines --dump-date --triggers --comments > swganh.bak
-	ECHO. Backing up the config database
-		mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh_config --create-options --extended-insert --routines --dump-date --triggers --comments > swganh_config.bak
-	ECHO. Backing up the logs database
-		mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh_logs --create-options --extended-insert --routines --dump-date --triggers --comments > swganh_logs.bak
-	ECHO. Backing up the AstroMech database
-		mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh_astromech --create-options --extended-insert --routines --dump-date --triggers --comments > swganh_astromech.bak
-	ECHO. Backing up the archive database
-		mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh_archive --create-options --extended-insert --routines --dump-date --triggers --comments > swganh_archive.bak
-		cd ..
- 
-    )
+	mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh swganh_archive swganh_astromech swganh_logs --create-options --extended-insert --routines --dump-date --triggers --comments > swganh_complete.bak
 	ECHO.
 	ECHO.
 	ECHO.
@@ -688,29 +507,10 @@ cd "%PROJECT_BASE%swganh\scripts"
 	ECHO.                           Backup Complete
 	call:sleep 5
 	GOTO:MainMenu
-	 
-:CHECKDBVERSION
+	
+:SchemaBackup
 	call:ShortMenu
-	ECHO.
-	
-	SET db_rev_major=0
-	
-	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 --database=swganh_config --execute="SELECT revisionMajor FROM swganh_config.swganh_version" >> output.log
-	
-	FOR /f "tokens=1,2,3 delims= " %%G IN (output.log) DO SET db_rev_major=%%G
-	DEL output.log
-	
-	SET db_rev_minor=0
-	
-	mysql --password=%db_pass% --host=%db_host% --user=%db_user% --default-character-set=utf8 --database=swganh_config --execute="SELECT revisionMinor FROM swganh_config.swganh_version" >> output.log
-	
-	FOR /f "tokens=1,2,3 delims= " %%G IN (output.log) DO SET db_rev_minor=%%G
-	DEL output.log
-	
-	ECHO. Server Database - Major Revision is %db_rev_major%
-	ECHO. Server Database - Minor Revision is %db_rev_minor%
-	
- ECHO.
+	mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh --create-options --extended-insert --routines --dump-date --triggers --comments > swganh.bak
 	ECHO.
 	ECHO.
 	ECHO.
@@ -718,20 +518,25 @@ cd "%PROJECT_BASE%swganh\scripts"
 	ECHO.
 	ECHO.
 	ECHO.
-	ECHO.                           Version Check Compleate
+	ECHO.
+	ECHO.                           Backup Complete
 	call:sleep 5
 	GOTO:MainMenu
-:SHIFT_RESOURCES
-call:ShortMenu
+	
+:AstroMechBackup
+	call:ShortMenu
+	mysqldump --password=%db_pass% --host=%db_host% --user=%db_user% --databases swganh_astromech --create-options --extended-insert --routines --dump-date --triggers --comments > swganh_AstroMech.bak
 	ECHO.
-	ECHO.                         Shifting Resources
 	ECHO.
-	
-	ECHO. SHIFT RESOURCES CALLED
-	
-	
-  call:sleep
-	GOTO:MainMenu	
+	ECHO.
+	ECHO.
+	ECHO.
+	ECHO.
+	ECHO.
+	ECHO.
+	ECHO.                           Backup Complete
+	call:sleep 5
+	GOTO:MainMenu
 
 :DatabaseRemove
 	call:ShortMenu
@@ -795,23 +600,22 @@ GOTO:EOF
 	ECHO.
 	ECHO.                         Database Details
 	ECHO.
-	cd "%PROJECT_BASE%swganh\scripts"
+	cd Server Scripts
 	call:GetFileCount
 	cd ..
-	
 	ECHO.  Number of SQL scripts for the main schema is  --------^> %maxcnt%
 	ECHO.
 	set maxcnt=0
-	
-	cd "%PROJECT_BASE%swganh\procedures"
+	cd Server Scripts
+	cd Functions
 	call:GetFileCount
 	cd ..
 	cd ..
 	ECHO.  Number of Stored Procedures for the main schema is  --^> %maxcnt%
 	ECHO.
 	set maxcnt=0
-	
-	cd "%PROJECT_BASE%swganh\functions"
+	cd Server Scripts
+	cd Procedures
 	call:GetFileCount
 	cd ..
 	cd ..
@@ -834,8 +638,6 @@ ECHO.
 SET /P db_host=Please enter the IP / hostname of the database: 
 SET /P db_user=Please enter the username with root access: 
 SET /P db_pass=Please enter the password for the user: 
-::SET /P PROJECT_BASE=Please enter the mmoserverdb dir: 
-
 GOTO:MainMenu
 
 :sleep -? waits some seconds before returning

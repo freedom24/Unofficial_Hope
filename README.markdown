@@ -22,9 +22,9 @@ To build the server on Windows simply double-click the BuildServer.bat file in t
 
 ### Unix Builds ###
 
-To build the server on Unix platforms run the bootstrap.sh script in the project root. This will download and build all the dependencies and sources. Once the script has completed you can issue further builds from within the "build" directory:
+To build the server on Unix platforms run the build_server.sh script in the project root. This will download and build all the dependencies and sources. Once the script has completed you can issue further builds from within the "build" directory:
 
-    ./buildserver.sh
+    ./build_server.sh
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=/opt/local ..
     make install

@@ -118,23 +118,23 @@ Project Base: %PROJECT_BASE%
 	ECHO.                                   ^|
 	ECHO.           Database Setup          ^|       Database Maintenance
 	ECHO.                                   ^|
-	ECHO.   (1) Complete DB Install         ^|  (a) Complete Database Backup
-	ECHO.   (2) Setup Databases ^& Users     ^|  (b) Check DB Version
-	ECHO.   (3) Setup Main Database         ^|  (c) Shift Resources
-	ECHO.   (4) Setup Stored Procedures     ^|  (d) Remove Databases
-	ECHO.   (5) Setup Stored Functions      ^| 
+	ECHO.   (0) First time install          ^|  (a) Complete Database Backup
+	ECHO.   (1) Complete DB Install         ^|  (b) Check DB Version  
+	ECHO.   (2) Setup Databases ^& Users     ^|  (c) Shift Resources
+	ECHO.   (3) Setup Main Database         ^|  (d) Remove Databases
+	ECHO.   (4) Setup Stored Procedures     ^|
+	ECHO.   (5) Setup Stored Functions      ^|          Script Settings 
 	ECHO.   (6) Setup tools                 ^|  
-	ECHO.                                   ^|          Script Settings
-	ECHO.   (7) Setup AstroMech Scripts     ^|
 	ECHO.                                   ^|  (e) Username Change
-	ECHO.        Server Configuration       ^|  (f) Password Change
+	ECHO.   (7) Setup AstroMech Scripts     ^|  (f) Password Change
 	ECHO.                                   ^|  (g) IP Change
+	ECHO.        Server Configuration       ^|
+	ECHO.                                   ^|
 	ECHO.   (8) Generate Resources          ^|
 	ECHO.   (9) Generate Bots               ^|               Help
-	ECHO.   (0) Reset GlobalTimer           ^|
+	ECHO.   (r) Reset GlobalTimer           ^|
 	ECHO.   (m) Change / Set MotD           ^|  (h) Help
-	ECHO.   (i) Change galaxy address       ^|  (s) Stats
-	ECHO.                                   ^|
+	ECHO.   (i) Change galaxy IP            ^|  (s) Stats
 	ECHO.                                   ^|
 	ECHO.                                   ^|
 	ECHO.                                   ^|
@@ -144,6 +144,8 @@ Project Base: %PROJECT_BASE%
 	ECHO.                                   ^|
 	ECHO. ----------------------------------------------------------------------
 	SET /P Choice=Make a choice or ^(q^) quit : 
+
+if /I '%Choice%'=='0' GOTO :FirstTime
 
 IF /I '%Choice%'=='1' GOTO :DatabaseCompleteSetup 
 
@@ -163,7 +165,7 @@ IF /I '%Choice%'=='8' GOTO :GenerateResources
 
 IF /I '%Choice%'=='9' GOTO :GenerateBots
 
-IF /I '%Choice%'=='0' GOTO :ResetGlobalTimer
+IF /I '%Choice%'=='r' GOTO :ResetGlobalTimer
 
 IF /I '%Choice%'=='m' GOTO :SetMOTD
 
@@ -191,6 +193,19 @@ IF /I '%Choice%'=='Q' GOTO :end
 
 GOTO:MainMenu
 
+:FirstTime
+  call:ShortMenu
+  call:UserChange
+  call:PassChange
+	ECHO.
+	ECHO.
+	ECHO.
+	ECHO.                      Sorry not in use at this time
+	ECHO.
+	ECHO.                           [Please Wait]
+	cd ..
+	call:sleep 5
+  GOTO:MainMenu
 :DatabaseCompleteSetup 
 	call:ShortMenu
   
@@ -832,7 +847,6 @@ ECHO.
 SET /P db_host=Please enter the IP / hostname of the database: 
 SET /P db_user=Please enter the username with root access: 
 SET /P db_pass=Please enter the password for the user: 
-::SET /P PROJECT_BASE=Please enter the mmoserverdb dir: 
 
 GOTO:MainMenu
 

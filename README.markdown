@@ -20,7 +20,7 @@ The MMOServer is the flagship project for the [SWG:ANH Team][1]. It is a cross p
 
 To build the server on Windows simply double-click the BuildServer.bat file in the project root. This will download and build all the dependencies and sources and then generate a /bin directory with the server executables.
 
-### Unix Builds ###
+### Unix Builds ### - not currently working
 
 To build the server on Unix platforms run the build_server.sh script in the project root. This will download and build all the dependencies and sources. Once the script has completed you can issue further builds from within the "build" directory:
 
@@ -40,6 +40,6 @@ You can use the -DCMAKE\_INSTALL\_PREFIX flag to specify a custom output directo
   [1]: http://swganh.com/
   [2]: http://starwarsgalaxies.com/
   [3]: http://cmake.org/cmake/resources/software.html
-  [4]: http://bugtracker.swganh.com/
+  [4]: http://wiki2.swganh.com/
   [5]: http://wiki.swganh.org/
   [6]: http://www.swganh.com/anh_community/

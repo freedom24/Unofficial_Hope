@@ -83,7 +83,7 @@ rem --- Start of SET_DEFAULTS --------------------------------------------------
 
 set DEPENDENCIES_VERSION=0.6.0
 set DEPENDENCIES_FILE=mmoserver-deps-%DEPENDENCIES_VERSION%.tar.bz2
-set DEPENDENCIES_URL=https://github.com/htx/mmoserver/releases/download/v0.6.0/%DEPENDENCIES_FILE%
+set DEPENDENCIES_URL=https://github.com/obi-two/Unofficial_Hope/releases/download/v0.2/%DEPENDENCIES_FILE%
 set "PROJECT_BASE=%~dp0"
 set "PROJECT_DRIVE=%~d0"
 set PATH=%PROJECT_BASE%tools\windows;%PATH%

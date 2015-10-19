@@ -22,7 +22,6 @@ To build the server on Windows simply double-click the BuildServer.bat file in t
 
 ## Building on Linux <draft>
 
-
 ### Pre-Requisits
 please manually install the following deps,
 
@@ -45,7 +44,6 @@ Clone the project form the git hub
 
 open a terminal and run the following
 
-Code: Select all
     ./build_server.sh
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=/opt/local ..

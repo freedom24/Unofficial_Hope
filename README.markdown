@@ -26,7 +26,7 @@ To build the server on Windows simply double-click the BuildServer.bat file in t
 please manually install the following deps,
 
     Gtest
-        sudo apt-get install libgtest0 libgtest-dev
+        sudo apt-get install libgtest-dev
 
     Zlib
         sudo apt-get install zlib1g-dev

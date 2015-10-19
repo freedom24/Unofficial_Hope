@@ -20,15 +20,39 @@ The MMOServer is the flagship project for the [SWG:ANH Team][1]. It is a cross p
 
 To build the server on Windows simply double-click the BuildServer.bat file in the project root. This will download and build all the dependencies and sources and then generate a /bin directory with the server executables.
 
-### Unix Builds - not currently working
+## Building on Linux <draft>
 
-To build the server on Unix platforms run the build_server.sh script in the project root. This will download and build all the dependencies and sources. Once the script has completed you can issue further builds from within the "build" directory:
 
+### Pre-Requisits
+please manually install the following deps,
+
+    Gtest
+        sudo apt-get install libgtest0 libgtest-dev
+
+    Zlib
+        sudo apt-get install zlib1g-dev
+
+    Git
+        sudo apt-get install git
+
+
+
+Clone the project form the git hub
+
+    git clone http://gitgub.com/obi-two/unofficial_hope
+
+
+
+open a terminal and run the following
+
+Code: Select all
     ./build_server.sh
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=/opt/local ..
     make install
-    
+
+
+
 You can use the -DCMAKE\_INSTALL\_PREFIX flag to specify a custom output directory for the make install command. 
 
 ## Useful Links ##

@@ -24,7 +24,8 @@ To build the server on Windows simply double-click the BuildServer.bat file in t
 
 ### Pre-Requisits
 please manually install the following deps,
-
+    Cmake 3.2
+        
     Gtest
         sudo apt-get install libgtest-dev
 

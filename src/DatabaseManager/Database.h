@@ -34,17 +34,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <memory>
 #include <queue>
 #include <string>
-#include <thread>
-#include <mutex>
-#include <chrono>
-#include <condition_variable>
-#include "Utils/logger.h"
-
 
 #include <boost/noncopyable.hpp>
 #include <boost/pool/pool.hpp>
-#include <boost/thread.hpp>
-#include "Utils/pipe.h"
 
 #include <tbb/concurrent_queue.h>
 
@@ -65,10 +57,7 @@ typedef tbb::concurrent_queue<DatabaseWorkerThread*> DatabaseWorkerThreadQueue;
 
 /*! An encapsulation of a connection to a database.
 */
-//class Database : private boost::noncopyable 
-//the private constructor should be enough
-
-class Database : private boost::noncopyable
+class Database : private boost::noncopyable 
 {
 public:
     /*! Connects to a specified database.
@@ -144,8 +133,6 @@ public:
     /*! Processes async queries.
     */
     void process();
-
-    void notify(){ databasePipe->send('D'); }
     
     /*! Executes an sql query with an unspecified number of parameters.
     *
@@ -262,8 +249,6 @@ private:
     // single overloaded constructor.
     Database();
 
-    void workerThread();
-
     DatabaseResult* executeSql(const char* sql, ...);
     
     void pushDatabaseJobComplete(DatabaseJob* job);
@@ -273,11 +258,6 @@ private:
     DatabaseJobQueue job_pending_queue_;
     DatabaseJobQueue job_complete_queue_;
     DatabaseWorkerThreadQueue idle_worker_queue_;
-
-    utils::Pipe*	databasePipe;
-    std::thread		dbProcessThread;
-    char 		threadname[16];
-    bool		mExit;
 
     std::unique_ptr<DatabaseImplementation> database_impl_;  // Use this implementation for any syncronous calls.
     

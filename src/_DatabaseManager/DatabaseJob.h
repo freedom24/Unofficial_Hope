@@ -25,34 +25,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "DatabaseManager/DatabaseManager.h"
+#ifndef ANH_DATABASEMANAGER_DATABASEJOB_H
+#define ANH_DATABASEMANAGER_DATABASEJOB_H
 
-#include <algorithm>
+#include <stdlib.h>
+#include <cstring>
 
-#include "DatabaseManager/Database.h"
-#include "Utils/logger.h"
+#include <boost/optional.hpp>
 
+#include "DatabaseManager/DatabaseCallback.h"
 
-void DatabaseManager::process() {
-    std::for_each(database_list_.begin(), database_list_.end(), 
-        [] (std::shared_ptr<Database> db) {
-            db->process();
-        });
-}
+class DatabaseResult;
+class DataBinding;
 
+struct DatabaseJob {
+public:
+    DatabaseJob() 
+        : old_callback(NULL)
+        , result(NULL)
+        , client_reference(NULL)
+        , multi_job(false) 
+    {}
 
-Database* DatabaseManager::connect(DBType type, 
-                                   const std::string& host, 
-                                   uint16_t port, 
-                                   const std::string& user, 
-                                   const std::string& pass, 
-                                   const std::string& schema)
-{
-    // Create our new Database object and initiailzie it.
-	auto database = std::make_shared<Database>(type, host, port, user, pass, schema, database_configuration_);
+    boost::optional<AsyncDatabaseCallback> callback;
+    DatabaseCallback* old_callback;
+    DatabaseResult* result;
+    void* client_reference;
+    std::string query;
+    bool multi_job;
+};
 
-    // Add the new DB to our process list.
-    database_list_.push_back(database);
-
-    return database.get();
-}
+#endif // ANH_DATABASEMANAGER_DATABASEJOB_H

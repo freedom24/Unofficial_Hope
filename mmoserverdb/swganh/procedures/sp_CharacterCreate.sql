@@ -1,28 +1,4 @@
-﻿/*
----------------------------------------------------------------------------------------
-This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Emulator)
-
-For more information, visit http://www.swganh.com
-
-Copyright (c) 2006 - 2010 The SWG:ANH Team
----------------------------------------------------------------------------------------
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
----------------------------------------------------------------------------------------
-*/
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+﻿/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
@@ -30,21 +6,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-
-
---
--- Use schema swganh
---
-
-USE swganh;
-
---
--- Definition of procedure `sp_CharacterCreate`
---
-
-DROP PROCEDURE IF EXISTS `sp_CharacterCreate`;
-
-DELIMITER $$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_CharacterCreate`(
 	IN start_account_id INT,IN start_galaxy_id INT,IN start_firstname char(32),IN start_lastname char(32),
@@ -65,7 +26,6 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_CharacterCreate`(
 	IN 68FF INT, IN 69FF INT, IN 6AFF INT, IN 6BFF INT, IN 6CFF INT, IN 6DFF INT, IN 6EFF INT, IN 6FFF INT,
 	IN 70FF INT, IN ABFF INT, IN AB2FF INT,
 	IN start_hair_model CHAR(64), IN hair1 INT,IN hair2 INT, IN base_model_string CHAR(64))
-
 charCreate:BEGIN
 
   --
@@ -206,6 +166,10 @@ charCreate:BEGIN
 
   -- Don't set any default skills or XP when creating player in the Tutorial.
 
+  SELECT skill_id from skills where skill_name like start_profession INTO profession_id;
+
+  -- Don't set any default skills or XP when creating player in the Tutorial.
+
   IF start_city = 'tutorial' THEN
     SET character_parent_id = 2203318222960;
     SET tutorialcontainer_id = 2533274790395904;
@@ -284,14 +248,4 @@ charCreate:BEGIN
 	
   SELECT(character_id);
 
-END $$
-
-DELIMITER ;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+END

@@ -96,7 +96,6 @@ DatabaseResult* DatabaseImplementationMySql::executeSql(const std::string& sql, 
 
         result = new(ResultPool::ordered_malloc()) DatabaseResult(*this, statement, result_set, procedure);
     } catch(const sql::SQLException& e) {
-        DLOG(INFO) << sql;
         LOG(FATAL) << e.what();
     }
 

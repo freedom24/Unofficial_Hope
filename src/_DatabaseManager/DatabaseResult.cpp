@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
 
-#include <mysql/mysql.h>
+#include <mysql.h>
 #include <stdlib.h>
 #include <stdio.h>
 

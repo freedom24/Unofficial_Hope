@@ -24,35 +24,26 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
-
-#include "DatabaseManager/DatabaseManager.h"
-
-#include <algorithm>
-
+#include "DatabaseManager/DatabaseWorkerThread.h"
 #include "DatabaseManager/Database.h"
-#include "Utils/logger.h"
+#include "DatabaseManager/DatabaseImplementationMySql.h"
+#include "DatabaseManager/DatabaseJob.h"
 
 
-void DatabaseManager::process() {
-    std::for_each(database_list_.begin(), database_list_.end(), 
-        [] (std::shared_ptr<Database> db) {
-            db->process();
-        });
+DatabaseWorkerThread::DatabaseWorkerThread(DBType type, const std::string& host, uint16_t port, const std::string& user, const std::string& pass, const std::string& schema)
+    : database_impl_(nullptr)
+{
+    switch (type) {
+        case DBTYPE_MYSQL:
+            database_impl_.reset(new DatabaseImplementationMySql(host, port, user, pass, schema));
+            break;
+    }
 }
 
 
-Database* DatabaseManager::connect(DBType type, 
-                                   const std::string& host, 
-                                   uint16_t port, 
-                                   const std::string& user, 
-                                   const std::string& pass, 
-                                   const std::string& schema)
-{
-    // Create our new Database object and initiailzie it.
-	auto database = std::make_shared<Database>(type, host, port, user, pass, schema, database_configuration_);
-
-    // Add the new DB to our process list.
-    database_list_.push_back(database);
-
-    return database.get();
+void DatabaseWorkerThread::executeJob(DatabaseJob* job, Callback callback) { 
+    active_.Send([=] {
+        job->result = database_impl_->executeSql(job->query.c_str(), job->multi_job);
+        callback(this, job);
+    }); 
 }

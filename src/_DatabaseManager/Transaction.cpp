@@ -25,34 +25,50 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "DatabaseManager/DatabaseManager.h"
+#include "DatabaseManager/Transaction.h"
 
-#include <algorithm>
+#include <cstdarg>
+#include <cstdint>
 
 #include "DatabaseManager/Database.h"
-#include "Utils/logger.h"
+#include "DatabaseManager/DatabaseCallback.h"
+#include "DatabaseManager/DatabaseImplementation.h"
+#include "DatabaseManager/DatabaseImplementationMySql.h"
 
 
-void DatabaseManager::process() {
-    std::for_each(database_list_.begin(), database_list_.end(), 
-        [] (std::shared_ptr<Database> db) {
-            db->process();
-        });
+Transaction::Transaction(Database* database, DatabaseCallback* callback, void* ref)
+    : mDatabase(database)
+    , mCallback(callback)
+    , mReference(ref)
+{
+    mQueries.flush();
+    mQueries << "CALL "<< mDatabase->galaxy()<<".sp_MultiTransaction(\"";
 }
 
 
-Database* DatabaseManager::connect(DBType type, 
-                                   const std::string& host, 
-                                   uint16_t port, 
-                                   const std::string& user, 
-                                   const std::string& pass, 
-                                   const std::string& schema)
-{
-    // Create our new Database object and initiailzie it.
-	auto database = std::make_shared<Database>(type, host, port, user, pass, schema, database_configuration_);
+Transaction::~Transaction() {
+    mQueries.flush();
+}
 
-    // Add the new DB to our process list.
-    database_list_.push_back(database);
 
-    return database.get();
+void Transaction::addQuery(const char* query, ...) {
+    va_list	args;
+    va_start(args,query);
+    char localSql[2048], escapedSql[2500];
+    int32_t	len = vsnprintf(localSql, sizeof(localSql), query, args);
+
+    // need to escape
+    mDatabase->escapeString(escapedSql, localSql, len);
+
+    mQueries << escapedSql << "$$";
+
+    va_end(args);
+}
+
+
+void Transaction::execute() {
+    mQueries << "\")";
+
+    mDatabase->executeProcedureAsync(mCallback, mReference, mQueries.str().c_str());
+    mDatabase->destroyTransaction(this);
 }

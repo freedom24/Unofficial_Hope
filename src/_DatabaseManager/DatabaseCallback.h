@@ -25,34 +25,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "DatabaseManager/DatabaseManager.h"
+#ifndef ANH_DATABASEMANAGER_DATABASECALLBACK_H
+#define ANH_DATABASEMANAGER_DATABASECALLBACK_H
 
-#include <algorithm>
+#include <functional>
 
-#include "DatabaseManager/Database.h"
-#include "Utils/logger.h"
+//======================================================================================================================
 
+class DatabaseResult;
 
-void DatabaseManager::process() {
-    std::for_each(database_list_.begin(), database_list_.end(), 
-        [] (std::shared_ptr<Database> db) {
-            db->process();
-        });
-}
+typedef std::function<void (DatabaseResult*)> AsyncDatabaseCallback;
 
-
-Database* DatabaseManager::connect(DBType type, 
-                                   const std::string& host, 
-                                   uint16_t port, 
-                                   const std::string& user, 
-                                   const std::string& pass, 
-                                   const std::string& schema)
+//======================================================================================================================
+class DatabaseCallback
 {
-    // Create our new Database object and initiailzie it.
-	auto database = std::make_shared<Database>(type, host, port, user, pass, schema, database_configuration_);
+public:
+    virtual void                    handleDatabaseJobComplete(void* ref, DatabaseResult* result) {};
+};
 
-    // Add the new DB to our process list.
-    database_list_.push_back(database);
-
-    return database.get();
-}
+#endif //MMOSERVER_DATABASEMANAGER_DATABASECALLBACK_H

@@ -38,8 +38,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Utils/ActiveObject.h"
 
 #include "DatabaseManager/DatabaseType.h"
-#include "Database.h"
-
 
 struct DatabaseJob;
 class DatabaseImplementation;
@@ -68,8 +66,7 @@ public:
                          uint16_t port, 
                          const std::string& user, 
                          const std::string& pass, 
-                         const std::string& schema,
-			 Database* db);
+                         const std::string& schema);
 
     /*! Executes a DatabaseJob asynchronusly on the worker's private thread.
     *
@@ -77,16 +74,13 @@ public:
     * \param callback The callback to invoke once execution of the job 
     *   has completed.
     */
-     ~DatabaseWorkerThread() { delete active_; }
     void executeJob(DatabaseJob* job, Callback callback);
 
 private:
     // Disable default construction.
     DatabaseWorkerThread();
-   
-    Database*	db_;
 
-    utils::ActiveObject *active_;
+    utils::ActiveObject active_;
     
     std::unique_ptr<DatabaseImplementation> database_impl_;
 };

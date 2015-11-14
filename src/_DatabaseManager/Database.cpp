@@ -27,7 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define NOMINMAX
 
 #include "Database.h"
-#include <signal.h>
 
 
 #ifdef ERROR
@@ -75,27 +74,16 @@ Database::Database(DBType type, const std::string& host, uint16_t port, const st
     uint32_t const hardware_threads = boost::thread::hardware_concurrency();
     uint32_t const num_threads = std::min(hardware_threads != 0 ? hardware_threads : min_threads, max_threads);
 
-
     DatabaseWorkerThread* worker = nullptr;
     for (uint32_t i = 0; i < num_threads; i++) {
-        worker = new DatabaseWorkerThread(type, host, port, user, pass, schema, this);
+        worker = new DatabaseWorkerThread(type, host, port, user, pass, schema);
         idle_worker_queue_.push(worker);
-	
     }
- 
-   mExit = false;
-   databasePipe = new utils::Pipe();
-
-   dbProcessThread = std::move(std::thread([=] { this->workerThread(); }));
 }
 
 
 Database::~Database() {
     DatabaseWorkerThread* worker = 0;
-
-    mExit = true;
-    sleep(1);
-    dbProcessThread.join();
 
     while(idle_worker_queue_.unsafe_size()) {
         if (idle_worker_queue_.try_pop(worker)) {
@@ -117,12 +105,10 @@ void Database::executeAsyncSql(const std::string& sql) {
 
     // Add the job to our processList;
     job_pending_queue_.push(job);
-    databasePipe->send('D');
 }
 void Database::executeAsyncSql(const std::stringstream& sql, AsyncDatabaseCallback callback) {    
     // just pass the stringstream string
     executeAsyncSql(sql.str(), callback);
-    databasePipe->send('D');
 }
 
 void Database::executeAsyncSql(const std::string& sql, AsyncDatabaseCallback callback) {    
@@ -134,7 +120,6 @@ void Database::executeAsyncSql(const std::string& sql, AsyncDatabaseCallback cal
 
     // Add the job to our processList;
     job_pending_queue_.push(job);
-    databasePipe->send('D');
 }
 
 void Database::executeAsyncProcedure(const std::stringstream& sql) {    
@@ -166,49 +151,10 @@ void Database::executeAsyncProcedure(const std::string& sql, AsyncDatabaseCallba
     job_pending_queue_.push(job);
 }
 
-void Database::workerThread(){
 
-sleep(1); // wait things to become ready
-        // debugging name
-        char iname[32],tmp[16]; // the inherited name
-
-        pthread_getname_np(pthread_self(),iname,32);
-
-        strcpy(tmp,"ANH:");
-        tmp[4] = 'U'; // undecided?
-
-        if(strncmp(iname,"ANH:",4)==0){ // daemon mode
-                if(iname[4] == 'C' && iname[5] == 'h') tmp[4]='C';
-                if(iname[4] == 'C' && iname[5] == 'o') tmp[4]='X';
-                if(iname[4] == 'L' && iname[5] == 'o') tmp[4]='L';
-                if(iname[4] == 'Z' && iname[5] == ':') tmp[4]='Z';
-                } else {
-                if(iname[0] == 'C' && iname[1] == 'h') tmp[4]='C';
-                if(iname[0] == 'C' && iname[1] == 'o') tmp[4]='X';
-                if(iname[0] == 'L' && iname[1] == 'o') tmp[4]='L';
-                if(iname[0] == 'Z' && iname[1] == 'o') tmp[4]='Z';
-                }
-
-        tmp[5] = 0;
-
-        snprintf(threadname,16,"%s:DB",tmp);
-
-        pthread_setname_np(pthread_self(),threadname);
-
-while(!mExit) {
-	process();
-	databasePipe->wait(100000); // auto check 10 times a sec
-	}
-
-}
-
-
-void Database::process() { // we gona make this its own thread
-
-
+void Database::process() {
     DatabaseWorkerThread* worker = nullptr;
     DatabaseJob* job = nullptr;
-     Database* db = this;
 
     // Check to see if we have any idle workers/jobs and execute them.
     int process_count = std::min(idle_worker_queue_.unsafe_size(), job_pending_queue_.unsafe_size());
@@ -236,8 +182,8 @@ void Database::process() { // we gona make this its own thread
             } else {
                 idle_worker_queue_.push(worker);
             }
+
             pushDatabaseJobComplete(job);      
-	    notify(); // wake up out thread
         });
     }
 
@@ -307,7 +253,6 @@ void Database::executeSqlAsync(DatabaseCallback* callback,
 
     // Add the job to our processList;
     job_pending_queue_.push(job);
-    databasePipe->send('D');
 }
 
 //the reasoning behind this is the following
@@ -333,7 +278,6 @@ void Database::executeSqlAsyncNoArguments(DatabaseCallback* callback,
 
     // Add the job to our processList;
     job_pending_queue_.push(job);
-    databasePipe->send('D');
 }
 
 
@@ -370,7 +314,6 @@ void Database::executeProcedureAsync(DatabaseCallback* callback,
 
     // Add the job to our processList
     job_pending_queue_.push(job);
-    databasePipe->send('D');
 }
 
 

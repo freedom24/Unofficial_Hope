@@ -33,7 +33,7 @@ please manually install the following deps,
 
 *   Git
 
-
+*   Scons
 
 Clone the project form the git hub
 

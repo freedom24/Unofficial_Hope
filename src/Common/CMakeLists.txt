@@ -5,4 +5,5 @@ AddMMOServerLibrary(Common
         Utils 
 )
 
-TARGET_LINK_LIBRARIES(Common "-lrt -lpthread")
+TARGET_LINK_LIBRARIES(Common 
+)

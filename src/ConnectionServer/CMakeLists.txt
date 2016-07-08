@@ -7,4 +7,5 @@ AddMMOServerExecutable(ConnectionServer
         Common
         Utils
         )
-TARGET_LINK_LIBRARIES(ConnectionServer "-lrt -lpthread")
+TARGET_LINK_LIBRARIES(ConnectionServer 
+)

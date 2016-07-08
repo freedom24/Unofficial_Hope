@@ -232,7 +232,7 @@ void StructureManagerChatHandler::handleDatabaseJobComplete(void* ref,DatabaseRe
         binding->addField(DFT_float,offsetof(structure,z),4,4);
         binding->addField(DFT_bstring,offsetof(structure,planet),32,5);
         binding->addField(DFT_uint32,offsetof(structure,maxcondition),4,6);
-        binding->addField(DFT_uint32,offsetof(structure,condition),4,7);
+        binding->addField(DFT_uint32,offsetof(structure,condition_id),4,7);
         binding->addField(DFT_uint64,offsetof(structure,lastMail),8,8);
 
         if (!result->getRowCount()) {
@@ -255,7 +255,7 @@ void StructureManagerChatHandler::handleDatabaseJobComplete(void* ref,DatabaseRe
 
         aMS->addMBstf("player_structure","mail_structure_damage");
         aMS->addTTstf(st.file.getAnsi(),st.dir.getAnsi());
-        aMS->addDI((uint32)((st.maxcondition-st.condition)/(st.maxcondition/100)));
+        aMS->addDI((uint32)((st.maxcondition-st.condition_id)/(st.maxcondition/100)));
         aMS->addTextModule();
 
         aMS->setPlanetString(st.planet);
@@ -394,7 +394,7 @@ void StructureManagerChatHandler::handleDatabaseJobComplete(void* ref,DatabaseRe
             int8 sql[500];
 
             //start by using power
-            sprintf(sql,"SELECT s.owner, st.stf_file, st.stf_name, s.x, s.z, p.name, st.max_condition, s.condition, s.lastMail FROM %s.structures s INNER JOIN %s.structure_type_data st ON (s.type = st.type) INNER JOIN %s.planet p ON (p.planet_id = s.zone)WHERE ID = %" PRIu64 "",mDatabase->galaxy(),mDatabase->galaxy(),mDatabase->galaxy(),asynContainer->harvesterID);
+            sprintf(sql,"SELECT s.owner, st.stf_file, st.stf_name, s.x, s.z, p.name, st.max_condition, s.condition_id, s.lastMail FROM %s.structures s INNER JOIN %s.structure_type_data st ON (s.type = st.type) INNER JOIN %s.planet p ON (p.planet_id = s.zone)WHERE ID = %" PRIu64 "",mDatabase->galaxy(),mDatabase->galaxy(),mDatabase->galaxy(),asynContainer->harvesterID);
             StructureManagerAsyncContainer* asyncContainer = new StructureManagerAsyncContainer(STRMQuery_StructureMailDamage,0);
             asyncContainer->harvesterID = asynContainer->harvesterID;
 

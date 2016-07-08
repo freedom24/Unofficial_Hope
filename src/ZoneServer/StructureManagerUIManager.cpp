@@ -199,11 +199,12 @@ void StructureManager::createNewStructureStatusBox(PlayerObject* player, PlayerS
     {
         HarvesterObject* hO = dynamic_cast<HarvesterObject*>(structure);
         HarvesterFamily haFa = hO->getHarvesterFamily();
+	
 
         if((haFa == HarvesterFamily_Fusion)||(haFa == HarvesterFamily_Solar)||(haFa == HarvesterFamily_Wind))
         {
-            gUIManager->createNewListBox(structure,"structurestatus","@player_structure:structure_status_t", wText, attributesMenu, player, SUI_Window_Structure_Status,SUI_LB_CANCELREFRESH,structure->getId());
-            return;
+         gUIManager->createNewListBox(structure, "structurestatus", "@player_structure:structure_status_t", wText, attributesMenu, player, SUI_Window_Structure_Status, SUI_LB_CANCELREFRESH, structure->getId());
+		    return;
         }
 
     }
@@ -211,8 +212,8 @@ void StructureManager::createNewStructureStatusBox(PlayerObject* player, PlayerS
     //no powerpool for houses :)
     if(structure->getPlayerStructureFamily() == PlayerStructure_House)
     {
-        gUIManager->createNewListBox(structure,"structurestatus","@player_structure:structure_status_t", wText, attributesMenu, player, SUI_Window_Structure_Status,SUI_LB_CANCELREFRESH,structure->getId());
-        return;
+        gUIManager->createNewListBox(structure, "structurestatus", "@player_structure:structure_status_t", wText, attributesMenu, player, SUI_Window_Structure_Status, SUI_LB_CANCELREFRESH, structure->getId());
+		  return;
     }
 
     uint32 power = structure->getCurrentPower();

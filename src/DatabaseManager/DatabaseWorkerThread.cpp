@@ -29,15 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "DatabaseManager/DatabaseImplementationMySql.h"
 #include "DatabaseManager/DatabaseJob.h"
 
-using namespace utils;
 
-DatabaseWorkerThread::DatabaseWorkerThread(DBType type, const std::string& host, uint16_t port, const std::string& user, const std::string& pass, const std::string& schema, Database *db)
+DatabaseWorkerThread::DatabaseWorkerThread(DBType type, const std::string& host, uint16_t port, const std::string& user, const std::string& pass, const std::string& schema)
     : database_impl_(nullptr)
 {
-
-    db_ = db;
-    active_ = new ActiveObject();
-
     switch (type) {
         case DBTYPE_MYSQL:
             database_impl_.reset(new DatabaseImplementationMySql(host, port, user, pass, schema));
@@ -47,9 +42,8 @@ DatabaseWorkerThread::DatabaseWorkerThread(DBType type, const std::string& host,
 
 
 void DatabaseWorkerThread::executeJob(DatabaseJob* job, Callback callback) { 
-    active_->Send([=] {
+    active_.Send([=] {
         job->result = database_impl_->executeSql(job->query.c_str(), job->multi_job);
         callback(this, job);
-        db_->notify();
     }); 
 }

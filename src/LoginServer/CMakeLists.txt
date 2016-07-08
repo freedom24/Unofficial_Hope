@@ -7,4 +7,5 @@ AddMMOServerExecutable(LoginServer
         Utils
         Common
 )
-TARGET_LINK_LIBRARIES(LoginServer "-lrt -lpthread")
+TARGET_LINK_LIBRARIES(LoginServer 
+)

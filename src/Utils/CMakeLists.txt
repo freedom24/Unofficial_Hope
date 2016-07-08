@@ -1,4 +1,5 @@
 include(MMOServerLibrary)
 
 AddMMOServerLibrary(Utils)
-TARGET_LINK_LIBRARIES(Utils "-lrt -lpthread")
+TARGET_LINK_LIBRARIES(Utils 
+)

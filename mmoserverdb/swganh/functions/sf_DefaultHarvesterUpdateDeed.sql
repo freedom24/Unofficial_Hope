@@ -2,8 +2,15 @@
 -- Routine DDL
 -- Note: comments before and after the routine body will not be stored by the server
 -- --------------------------------------------------------------------------------
+DELIMITER $$
 
-use swganh;
+USE SWGANH;
+
+--
+-- Definition of function `sf_DefaultHarvesterUpdateDeed`
+--
+
+DROP FUNCTION IF EXISTS `sf_DefaultHarvesterUpdateDeed`;
 
 DELIMITER $$
 
@@ -28,28 +35,63 @@ BEGIN
 
 
 
-        UPDATE  characters c INNER JOIN structure_cells sc ON (c.parent_id = sc.id) INNER JOIN structures h ON (h.id = sc.parent_id) SET c.x = h.x, c.y = h.y, c.z = h.z, c.parent_id = 0 WHERE h.id = parent_id;
+UPDATE characters c
+        INNER JOIN
+    structure_cells sc ON (c.parent_id = sc.id)
+        INNER JOIN
+    structures h ON (h.id = sc.parent_id) 
+SET 
+    c.x = h.x,
+    c.y = h.y,
+    c.z = h.z,
+    c.parent_id = 0
+WHERE
+    h.id = parent_id;
 
 
-        SELECT i.id FROM items i WHERE i.parent_id = parent_id AND item_family = 15 INTO deed_id;
+SELECT 
+    i.id
+FROM
+    items i
+WHERE
+    i.parent_id = parent_id
+        AND item_family = 15 INTO deed_id;
 
 
 
 
 
-        SELECT sa.value FROM structure_attributes sa WHERE sa.structure_id = parent_id AND sa.attribute_id = 382 INTO maintchar;
-        SELECT CAST(maintchar AS SIGNED) INTO maint;
+SELECT 
+    sa.value
+FROM
+    structure_attributes sa
+WHERE
+    sa.structure_id = parent_id
+        AND sa.attribute_id = 382 INTO maintchar;
+SELECT CAST(maintchar AS SIGNED) INTO maint;
 
-        SELECT st.maint_cost_wk FROM structures s INNER JOIN structure_type_data st ON (s.type = st.type) WHERE s.ID = parent_id  INTO rate;
+SELECT 
+    st.maint_cost_wk
+FROM
+    structures s
+        INNER JOIN
+    structure_type_data st ON (s.type = st.type)
+WHERE
+    s.ID = parent_id INTO rate;
 
         IF(maint < ((rate/168)*45))THEN
            DELETE FROM items WHERE id = deed_id;
            RETURN(1);
         END IF;
 
-        SELECT CAST((maint-((rate/168)*45)) AS SIGNED) INTO maint;
-        SELECT CAST(maint AS CHAR(128)) INTO maintchar;
-        UPDATE structure_attributes sa SET sa.VALUE = maintchar WHERE sa.structure_id = parent_id AND sa.attribute_id = 382;
+SELECT CAST((maint - ((rate / 168) * 45)) AS SIGNED) INTO maint;
+SELECT CAST(maint AS CHAR (128)) INTO maintchar;
+UPDATE structure_attributes sa 
+SET 
+    sa.VALUE = maintchar
+WHERE
+    sa.structure_id = parent_id
+        AND sa.attribute_id = 382;
 
         IF loopEnd THEN
            RETURN(0);
@@ -66,7 +108,12 @@ BEGIN
 
         CLOSE cur_1;
 
-        UPDATE  items i SET i.parent_id = owner_id WHERE i.parent_id = parent_id AND i.item_family = 15;
+UPDATE items i 
+SET 
+    i.parent_id = owner_id
+WHERE
+    i.parent_id = parent_id
+        AND i.item_family = 15;
 
         RETURN(deed_id);
 END

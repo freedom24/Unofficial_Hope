@@ -8,4 +8,5 @@ NetworkManager
 Utils
 Common
 )
-TARGET_LINK_LIBRARIES(ChatServer "-lrt -lpthread")
+TARGET_LINK_LIBRARIES(ChatServer 
+)

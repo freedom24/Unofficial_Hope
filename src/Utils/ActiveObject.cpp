@@ -25,33 +25,46 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "DatabaseManager/DatabaseManager.h"
+#include "Utils/ActiveObject.h"
 
-#include <algorithm>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-#include "DatabaseManager/Database.h"
+using boost::thread;
 
+namespace utils {
 
-void DatabaseManager::process() {
-    std::for_each(database_list_.begin(), database_list_.end(), 
-        [] (std::shared_ptr<Database> db) {
-            db->process();
-        });
+ActiveObject::ActiveObject() : done_(false) {
+    thread_ = std::move(thread([=] { this->Run(); }));
+
+#ifdef _WIN32
+    HANDLE mtheHandle = thread_.native_handle();
+    SetPriorityClass(mtheHandle,REALTIME_PRIORITY_CLASS);
+#endif
 }
 
-
-Database* DatabaseManager::connect(DBType type, 
-                                   const std::string& host, 
-                                   uint16_t port, 
-                                   const std::string& user, 
-                                   const std::string& pass, 
-                                   const std::string& schema)
-{
-    // Create our new Database object and initiailzie it.
-	auto database = std::make_shared<Database>(type, host, port, user, pass, schema, database_configuration_);
-
-    // Add the new DB to our process list.
-    database_list_.push_back(database);
-
-    return database.get();
+ActiveObject::~ActiveObject() {
+    Send([&] { done_ = true; });
+    thread_.join();
 }
+
+void ActiveObject::Send(Message message) {
+    message_queue_.push(message);
+    condition_.notify_one();
+}
+
+void ActiveObject::Run() {
+    Message message;
+
+    boost::unique_lock<boost::mutex> lock(mutex_);
+    while (! done_) {
+        if (condition_.timed_wait(lock, boost::get_system_time() + boost::posix_time::milliseconds(1),
+        		[this, &message] { return message_queue_.try_pop(message); })) {
+        	message();
+        }
+    }
+ //  usleep(2000);
+}
+
+}  // namespace utils

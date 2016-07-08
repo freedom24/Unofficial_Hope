@@ -92,7 +92,8 @@ struct structure
     float z;
     BString planet;
     uint32 maxcondition;
-    uint32 condition;
+	// uint32 condition;
+    uint32 condition_id;
     uint32 maint;
     uint64 lastMail;
 };

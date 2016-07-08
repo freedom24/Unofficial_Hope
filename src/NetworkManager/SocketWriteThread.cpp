@@ -90,7 +90,8 @@ SocketWriteThread::SocketWriteThread(SOCKET socket, Service* service, bool serve
         mServerService = false;
         mMessageMaxSize = network_configuration.getServerToClientReliableSize();
     }
-sessionPipe = new Pipe();
+    //added for later use Obi
+//sessionPipe = new Pipe();
 
     // We do have a global clock object, don't use seperate clock and times for every process.
     // mClock = new Anh_Utils::Clock();
@@ -171,8 +172,8 @@ void SocketWriteThread::run()
 			//DLOG(INFO) << "sending : " << packetsSend << "Packets";
 		//}
 
-       // boost::this_thread::sleep(boost::posix_time::milliseconds(1));
-        sessionPipe->wait(2000);
+        boost::this_thread::sleep(boost::posix_time::milliseconds(2));
+       // sessionPipe->wait(2000);
     }
 
     // Shutdown internally
@@ -313,7 +314,7 @@ void SocketWriteThread::NewSession(Session* session)
 {
     //using concurrent queue that has a recursive mutex
     mSessionQueue.push(session);
-    sessionPipe->send('X');
+//    sessionPipe->send('X'); //added for later use Obi
 }
 
 //======================================================================================================================
@@ -341,7 +342,7 @@ void SocketWriteThread::_send(Session* session)
 	// otherwise inform the service that we need destroying
 	if (session->getStatus() != SSTAT_Disconnected)	{
 		mSessionQueue.push(session);
-		sessionPipe->send('X');
+		//sessionPipe->send('X');//added for later use Obi
 	}	else	{
 		session->setStatus(SSTAT_Destroy);
 		mService->AddSessionToProcessQueue(session);

@@ -1077,6 +1077,7 @@ void StructureManager::processVerification(StructureAsyncCommand command, bool o
 			mDatabase->executeSqlAsync(this,asyncContainer,
 				"(SELECT \'power\', sa.value FROM %s.structure_attributes sa WHERE sa.structure_id = %" PRIu64 " AND sa.attribute_id = 384)"
 				,mDatabase->galaxy(),structure->getId());
+
 		}
 		break;
 
@@ -1089,9 +1090,10 @@ void StructureManager::processVerification(StructureAsyncCommand command, bool o
 			asyncContainer->mPlayerId		= command.PlayerId;
 			asyncContainer->command			= command;
 			mDatabase->executeSqlAsync(this,asyncContainer,"(SELECT \'maintenance\', sa.value FROM %s.structure_attributes sa WHERE sa.structure_id = %" PRIu64 " AND sa.attribute_id = 382)"
-														 " UNION (SELECT \'condition\', s.condition FROM %s.structures s WHERE s.id = %" PRIu64 ")",
+														 " UNION (SELECT \'condition_id\', sa.condition_id FROM %s.structures sa WHERE id = %" PRIu64 ")",
                                                          mDatabase->galaxy(),structure->getId(),
                                                          mDatabase->galaxy(),structure->getId());
+			DLOG(WARNING) << "StructureManager::processVerification : CONDITION_ID) ";
 		}
 		break;
 
@@ -1135,7 +1137,7 @@ void StructureManager::processVerification(StructureAsyncCommand command, bool o
 			StructureManagerAsyncContainer* asyncContainer = new StructureManagerAsyncContainer(Structure_GetResourceData,player->getClient());
 			asyncContainer->mStructureId	= command.StructureId;
 			asyncContainer->mPlayerId		= command.PlayerId;
-			mDatabase->executeSqlAsync(harvester,asyncContainer,"SELECT hr.resourceID, hr.quantity FROM %s.harvester_resources hr WHERE hr.ID = '%" PRIu64 "' ",mDatabase->galaxy(),harvester->getId());
+			mDatabase->executeSqlAsync(harvester,asyncContainer,"SELECT hr.resourceID, hr.quantity FROM %s.harvester_resources hr WHERE hr.ID = '%" PRIu64 "'",mDatabase->galaxy(),harvester->getId());
 
 		}
 		break;
@@ -1431,10 +1433,10 @@ bool StructureManager::_handleStructureDBCheck(uint64 callTime, void* ref)
 
     StructureManagerAsyncContainer* asyncContainer;
     asyncContainer = new StructureManagerAsyncContainer(Structure_GetInactiveHarvesters, 0);
-    mDatabase->executeSqlAsync(this,asyncContainer,"SELECT h.ID, s.condition FROM %s.harvesters h INNER JOIN %s.structures s ON (h.ID = s.ID) WHERE active = 0 AND s.zone = %u",mDatabase->galaxy(),mDatabase->galaxy(), gWorldManager->getZoneId());
+    mDatabase->executeSqlAsync(this,asyncContainer,"SELECT h.ID, s.condition_id FROM %s.harvesters h INNER JOIN %s.structures s ON (h.ID = s.ID) WHERE active = 0 AND s.zone = %u",mDatabase->galaxy(),mDatabase->galaxy(), gWorldManager->getZoneId());
 
     asyncContainer = new StructureManagerAsyncContainer(Structure_GetDestructionStructures, 0);
-    mDatabase->executeSqlAsync(this,asyncContainer,"SELECT h.ID, s.condition FROM %s.harvesters h INNER JOIN %s.structures s ON (h.ID = s.ID) WHERE active = 0 AND( s.condition >= 1000) AND s.zone = %u", mDatabase->galaxy(),mDatabase->galaxy(),gWorldManager->getZoneId());
+    mDatabase->executeSqlAsync(this,asyncContainer,"SELECT h.ID, s.condition_id FROM %s.harvesters h INNER JOIN %s.structures s ON (h.ID = s.ID) WHERE active = 0 AND( s.condition_id >= 1000) AND s.zone = %u", mDatabase->galaxy(),mDatabase->galaxy(),gWorldManager->getZoneId());
 
     return (true);
 }

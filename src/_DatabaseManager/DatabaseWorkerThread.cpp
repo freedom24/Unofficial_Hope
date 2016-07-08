@@ -24,47 +24,26 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
+#include "DatabaseManager/DatabaseWorkerThread.h"
+#include "DatabaseManager/Database.h"
+#include "DatabaseManager/DatabaseImplementationMySql.h"
+#include "DatabaseManager/DatabaseJob.h"
 
-#include "Utils/ActiveObject.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-using boost::thread;
-
-namespace utils {
-
-ActiveObject::ActiveObject() : done_(false) {
-    thread_ = std::move(thread([=] { this->Run(); }));
-
-#ifdef _WIN32
-    HANDLE mtheHandle = thread_.native_handle();
-    SetPriorityClass(mtheHandle,REALTIME_PRIORITY_CLASS);
-#endif
-}
-
-ActiveObject::~ActiveObject() {
-    Send([&] { done_ = true; });
-    thread_.join();
-}
-
-void ActiveObject::Send(Message message) {
-    message_queue_.push(message);
-    condition_.notify_one();
-}
-
-void ActiveObject::Run() {
-    Message message;
-
-    boost::unique_lock<boost::mutex> lock(mutex_);
-    while (! done_) {
-        if (condition_.timed_wait(lock, boost::get_system_time() + boost::posix_time::milliseconds(1),
-        		[this, &message] { return message_queue_.try_pop(message); })) {
-        	message();
-        }
+DatabaseWorkerThread::DatabaseWorkerThread(DBType type, const std::string& host, uint16_t port, const std::string& user, const std::string& pass, const std::string& schema)
+    : database_impl_(nullptr)
+{
+    switch (type) {
+        case DBTYPE_MYSQL:
+            database_impl_.reset(new DatabaseImplementationMySql(host, port, user, pass, schema));
+            break;
     }
- //  usleep(2000);
 }
 
-}  // namespace utils
+
+void DatabaseWorkerThread::executeJob(DatabaseJob* job, Callback callback) { 
+    active_.Send([=] {
+        job->result = database_impl_->executeSql(job->query.c_str(), job->multi_job);
+        callback(this, job);
+    }); 
+}

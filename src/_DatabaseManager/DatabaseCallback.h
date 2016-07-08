@@ -25,46 +25,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "Utils/ActiveObject.h"
+#ifndef ANH_DATABASEMANAGER_DATABASECALLBACK_H
+#define ANH_DATABASEMANAGER_DATABASECALLBACK_H
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include <functional>
 
-using boost::thread;
+//======================================================================================================================
 
-namespace utils {
+class DatabaseResult;
 
-ActiveObject::ActiveObject() : done_(false) {
-    thread_ = std::move(thread([=] { this->Run(); }));
+typedef std::function<void (DatabaseResult*)> AsyncDatabaseCallback;
 
-#ifdef _WIN32
-    HANDLE mtheHandle = thread_.native_handle();
-    SetPriorityClass(mtheHandle,REALTIME_PRIORITY_CLASS);
-#endif
-}
+//======================================================================================================================
+class DatabaseCallback
+{
+public:
+    virtual void                    handleDatabaseJobComplete(void* ref, DatabaseResult* result) {};
+};
 
-ActiveObject::~ActiveObject() {
-    Send([&] { done_ = true; });
-    thread_.join();
-}
-
-void ActiveObject::Send(Message message) {
-    message_queue_.push(message);
-    condition_.notify_one();
-}
-
-void ActiveObject::Run() {
-    Message message;
-
-    boost::unique_lock<boost::mutex> lock(mutex_);
-    while (! done_) {
-        if (condition_.timed_wait(lock, boost::get_system_time() + boost::posix_time::milliseconds(1),
-        		[this, &message] { return message_queue_.try_pop(message); })) {
-        	message();
-        }
-    }
- //  usleep(2000);
-}
-
-}  // namespace utils
+#endif //MMOSERVER_DATABASEMANAGER_DATABASECALLBACK_H

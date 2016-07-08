@@ -365,7 +365,7 @@ void FactoryFactory::requestObject(ObjectFactoryCallback* ofCallback,uint64 id,u
     int8 sql[1024];
     sprintf(sql,	"SELECT s.id,s.owner,s.oX,s.oY,s.oZ,s.oW,s.x,s.y,s.z,"
             "std.type,std.object_string,std.stf_name, std.stf_file, s.name,"
-            "std.lots_used, f.active, std.maint_cost_wk, std.power_used, std.schematicMask, s.condition, std.max_condition, f.ManSchematicId "
+            "std.lots_used, f.active, std.maint_cost_wk, std.power_used, std.schematicMask, s.condition_id, std.max_condition, f.ManSchematicId "
             "FROM %s.structures s INNER JOIN %s.structure_type_data std ON (s.type = std.type) INNER JOIN %s.factories f ON (s.id = f.id) "
             "WHERE (s.id = %" PRIu64 ")",
             mDatabase->galaxy(),mDatabase->galaxy(),mDatabase->galaxy(),id);

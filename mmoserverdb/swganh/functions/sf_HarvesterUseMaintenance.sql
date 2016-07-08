@@ -1,21 +1,17 @@
 /*
 ---------------------------------------------------------------------------------------
 This source file is part of SWG:ANH (Star Wars Galaxies - A New Hope - Server Emulator)
-
 For more information, visit http://www.swganh.com
-
 Copyright (c) 2006 - 2010 The SWG:ANH Team
 ---------------------------------------------------------------------------------------
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
 version 2.1 of the License, or (at your option) any later version.
-
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 Lesser General Public License for more details.
-
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -149,20 +145,20 @@ BEGIN
 --
 
     SELECT (cr/(rate/100)) INTO percent;
-    UPDATE structures s SET s.condition = (s.condition -(decayrate*percent)) WHERE s.ID =hID;
+    UPDATE structures s SET s.condition_id = (s.condition_id -(decayrate*percent)) WHERE s.ID =hID;
 
 --
 -- damage the structures Condition
 --
 
-    SELECT s.condition FROM structures s WHERE s.ID =hID  INTO struct_condition;
+    SELECT s.condition_id FROM structures s WHERE s.ID =hID  INTO struct_condition;
 
 --
 -- notify if the structure needs to be condemned thats return code 3
 --
 
     if(struct_condition <= 0) THEN
-      UPDATE structures s SET s.condition = 0 WHERE s.ID =hID;
+      UPDATE structures s SET s.condition_id = 0 WHERE s.ID =hID;
       return 3;
     END IF;
 

@@ -25,46 +25,50 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "Utils/ActiveObject.h"
+#include "DatabaseManager/Transaction.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include <cstdarg>
+#include <cstdint>
 
-using boost::thread;
+#include "DatabaseManager/Database.h"
+#include "DatabaseManager/DatabaseCallback.h"
+#include "DatabaseManager/DatabaseImplementation.h"
+#include "DatabaseManager/DatabaseImplementationMySql.h"
 
-namespace utils {
 
-ActiveObject::ActiveObject() : done_(false) {
-    thread_ = std::move(thread([=] { this->Run(); }));
-
-#ifdef _WIN32
-    HANDLE mtheHandle = thread_.native_handle();
-    SetPriorityClass(mtheHandle,REALTIME_PRIORITY_CLASS);
-#endif
+Transaction::Transaction(Database* database, DatabaseCallback* callback, void* ref)
+    : mDatabase(database)
+    , mCallback(callback)
+    , mReference(ref)
+{
+    mQueries.flush();
+    mQueries << "CALL "<< mDatabase->galaxy()<<".sp_MultiTransaction(\"";
 }
 
-ActiveObject::~ActiveObject() {
-    Send([&] { done_ = true; });
-    thread_.join();
+
+Transaction::~Transaction() {
+    mQueries.flush();
 }
 
-void ActiveObject::Send(Message message) {
-    message_queue_.push(message);
-    condition_.notify_one();
+
+void Transaction::addQuery(const char* query, ...) {
+    va_list	args;
+    va_start(args,query);
+    char localSql[2048], escapedSql[2500];
+    int32_t	len = vsnprintf(localSql, sizeof(localSql), query, args);
+
+    // need to escape
+    mDatabase->escapeString(escapedSql, localSql, len);
+
+    mQueries << escapedSql << "$$";
+
+    va_end(args);
 }
 
-void ActiveObject::Run() {
-    Message message;
 
-    boost::unique_lock<boost::mutex> lock(mutex_);
-    while (! done_) {
-        if (condition_.timed_wait(lock, boost::get_system_time() + boost::posix_time::milliseconds(1),
-        		[this, &message] { return message_queue_.try_pop(message); })) {
-        	message();
-        }
-    }
- //  usleep(2000);
+void Transaction::execute() {
+    mQueries << "\")";
+
+    mDatabase->executeProcedureAsync(mCallback, mReference, mQueries.str().c_str());
+    mDatabase->destroyTransaction(this);
 }
-
-}  // namespace utils

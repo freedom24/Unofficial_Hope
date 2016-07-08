@@ -201,7 +201,7 @@ void HarvesterFactory::requestObject(ObjectFactoryCallback* ofCallback,uint64 id
     //request the harvesters Data first
 
     int8 sql2[1024];
-    sprintf(sql2,	"SELECT s.id,s.owner,s.oX,s.oY,s.oZ,s.oW,s.x,s.y,s.z,std.type,std.object_string,std.stf_name, std.stf_file, s.name, std.lots_used, std.resource_Category, h.ResourceID, h.active, h.rate, std.maint_cost_wk, std.power_used, s.condition, std.max_condition, std.repair_cost "
+    sprintf(sql2,	"SELECT s.id,s.owner,s.oX,s.oY,s.oZ,s.oW,s.x,s.y,s.z,std.type,std.object_string,std.stf_name, std.stf_file, s.name, std.lots_used, std.resource_Category, h.ResourceID, h.active, h.rate, std.maint_cost_wk, std.power_used, s.condition_id, std.max_condition, std.repair_cost "
             "FROM %s.structures s INNER JOIN %s.structure_type_data std ON (s.type = std.type) INNER JOIN %s.harvesters h ON (s.id = h.id) "
             "WHERE (s.id = %" PRIu64 ")",
             mDatabase->galaxy(),mDatabase->galaxy(),mDatabase->galaxy(),id);

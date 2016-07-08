@@ -25,46 +25,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 ---------------------------------------------------------------------------------------
 */
 
-#include "Utils/ActiveObject.h"
+#ifndef ANH_DATABASEMANAGER_DATABASEJOB_H
+#define ANH_DATABASEMANAGER_DATABASEJOB_H
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include <stdlib.h>
+#include <cstring>
 
-using boost::thread;
+#include <boost/optional.hpp>
 
-namespace utils {
+#include "DatabaseManager/DatabaseCallback.h"
 
-ActiveObject::ActiveObject() : done_(false) {
-    thread_ = std::move(thread([=] { this->Run(); }));
+class DatabaseResult;
+class DataBinding;
 
-#ifdef _WIN32
-    HANDLE mtheHandle = thread_.native_handle();
-    SetPriorityClass(mtheHandle,REALTIME_PRIORITY_CLASS);
-#endif
-}
+struct DatabaseJob {
+public:
+    DatabaseJob() 
+        : old_callback(NULL)
+        , result(NULL)
+        , client_reference(NULL)
+        , multi_job(false) 
+    {}
 
-ActiveObject::~ActiveObject() {
-    Send([&] { done_ = true; });
-    thread_.join();
-}
+    boost::optional<AsyncDatabaseCallback> callback;
+    DatabaseCallback* old_callback;
+    DatabaseResult* result;
+    void* client_reference;
+    std::string query;
+    bool multi_job;
+};
 
-void ActiveObject::Send(Message message) {
-    message_queue_.push(message);
-    condition_.notify_one();
-}
-
-void ActiveObject::Run() {
-    Message message;
-
-    boost::unique_lock<boost::mutex> lock(mutex_);
-    while (! done_) {
-        if (condition_.timed_wait(lock, boost::get_system_time() + boost::posix_time::milliseconds(1),
-        		[this, &message] { return message_queue_.try_pop(message); })) {
-        	message();
-        }
-    }
- //  usleep(2000);
-}
-
-}  // namespace utils
+#endif // ANH_DATABASEMANAGER_DATABASEJOB_H

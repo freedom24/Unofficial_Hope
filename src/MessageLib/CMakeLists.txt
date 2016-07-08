@@ -12,4 +12,5 @@ AddMMOServerLibrary(MessageLib
     OPTIMIZED_LIBRARIES
         ${NOISE_LIBRARY_RELEASE}
 )
-TARGET_LINK_LIBRARIES(MessageLib "-lrt -lpthread")
+TARGET_LINK_LIBRARIES(MessageLib 
+)
